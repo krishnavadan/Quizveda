@@ -338,7 +338,8 @@ async def get_content_quality_report(
                 "code": "short_explanation",
                 "severity": "advisory",
                 "message": (
-                    "Explanation is brief; consider adding reasoning that helps " "learners understand the answer."
+                    "Explanation is brief; consider adding reasoning that "
+                    "helps learners understand the answer."
                 ),
             })
         options = options_by_revision.get(revision.id, [])
