@@ -12,3 +12,7 @@ This directory indexes the governed AI operating model. AI is optional and is no
 - Evaluation/observability: ../docs/31-ai-evaluation-and-observability.md
 
 Non-negotiables: deterministic gameplay; human approval before publication; evidence and provenance; least-privilege tools; no hidden reasoning traces in durable memory; no sensitive learner profiling or age inference; transparent user-controlled personalization.
+
+
+## Hard boundary
+**AI is for development only, not for the app.** This directory documents internal agent/skill/MCP workflows and offline content assistance. Do not package anything here into the production PWA, API, worker or learner-facing deployment. Do not connect agents to production learner data or secrets. Runtime product behavior—including question selection, hints, explanations, recommendations, scoring and progression—is deterministic. AI-assisted content is only a draft until human-reviewed, approved and published as an immutable content pack.
