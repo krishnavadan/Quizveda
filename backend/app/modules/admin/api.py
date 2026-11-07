@@ -328,14 +328,18 @@ async def get_content_quality_report(
                 "question_key": key,
                 "code": "short_stem",
                 "severity": "advisory",
-                "message": "Question stem is unusually short; verify that it provides enough context.",
+                "message": (
+                    "Question stem is unusually short; verify that it provides enough context."
+                ),
             })
         if len(revision.explanation.strip()) < 30:
             findings.append({
                 "question_key": key,
                 "code": "short_explanation",
                 "severity": "advisory",
-                "message": "Explanation is brief; consider adding reasoning that helps learners understand the answer.",
+                "message": (
+                    "Explanation is brief; consider adding reasoning that helps learners understand the answer."
+                ),
             })
         options = options_by_revision.get(revision.id, [])
         normalised_options = [_normalise_editorial_text(option.text) for option in options]
@@ -351,7 +355,9 @@ async def get_content_quality_report(
                 "question_key": key,
                 "code": "few_options",
                 "severity": "advisory",
-                "message": "Fewer than three answer options are present; confirm this is intentional.",
+                "message": (
+                    "Fewer than three answer options are present; confirm this is intentional."
+                ),
             })
 
     duplicate_groups = [
@@ -365,7 +371,9 @@ async def get_content_quality_report(
                 "question_key": key,
                 "code": "duplicate_stem",
                 "severity": "advisory",
-                "message": "This question has the same normalised stem as another question in the pack.",
+                "message": (
+                    "This question has the same normalised stem as another question in the pack."
+                ),
             })
 
     return {
@@ -377,5 +385,8 @@ async def get_content_quality_report(
         "advisory_count": len(findings),
         "duplicate_stem_groups": duplicate_groups,
         "findings": findings,
-        "disclaimer": "Heuristic editorial signals only. They may produce false positives or miss defects and do not replace subject-matter review, schema validation, rights checks, or approval.",
+        "disclaimer": (
+            "Heuristic editorial signals only. They may produce false positives or miss defects "
+            "and do not replace subject-matter review, schema validation, rights checks, or approval."
+        ),
     }
