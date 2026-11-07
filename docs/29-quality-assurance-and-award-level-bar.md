@@ -27,3 +27,7 @@ Unit, contract, integration, end-to-end, adversarial, human and production monit
 No open critical/high defect; independently verified answer keys; provenance/rights complete; manual keyboard and screen-reader review; security/privacy signoff; low-end mobile performance budgets; restore/rollback verified; privacy-safe analytics; human approval and immutable release artifact hash.
 
 Measure task completion, time-to-first-question, quiz completion, explanation engagement, return learning, clarity, accessibility defects, crash-free sessions and trust. Do not optimise only session duration, streak pressure or compulsive return.
+
+
+## AI boundary quality gate
+Test that learner journeys work with all model-provider credentials absent and model-provider network egress unavailable. Verify that production dependency manifests contain no AI/agent/MCP runtime packages, no model secrets are provisioned, and all explanations/hints/questions originate from approved versioned content. Any accidental runtime model call is a release-blocking defect.
