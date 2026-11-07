@@ -17,3 +17,6 @@ Explain recommendations in plain language (“Suggested because you selected bus
 
 ## Acceptance
 Blank profile can play; explicit choice wins; personalization-off ignores behavior; expired signals ignored; no sensitive attribute collection or inference.
+
+## Age-aware presentation extension
+Add an optional self-declared broad age band and age-appropriate presentation defaults as defined in docs/30-age-aware-personalized-ux.md. Do not infer age or use it as a proxy for ability. Age band may adjust reading complexity, navigation guidance and safety defaults only; learners can override presentation preferences. Apply jurisdiction-specific child privacy and guardian-control review before launch. Guest play remains supported where appropriate.
