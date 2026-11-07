@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quizveda.example/schemas/taxonomy-node.schema.json",
+  "title": "QuizVeda Taxonomy Node",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["node_key", "node_type", "label", "status"],
+  "properties": {
+    "node_key": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,119}$"},
+    "parent_key": {"type": ["string", "null"]},
+    "node_type": {"enum": ["subject", "domain", "topic", "subtopic", "skill"]},
+    "label": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string"}},
+    "description": {"type": "object", "additionalProperties": {"type": "string"}},
+    "status": {"enum": ["draft", "active", "retired"]},
+    "sort_order": {"type": "integer", "default": 0}
+  }
+}
