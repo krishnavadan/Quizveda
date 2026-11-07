@@ -93,7 +93,12 @@ def upgrade() -> None:
         sa.Column("current_position", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("selection_seed", sa.String(64), nullable=False),
         sa.Column("policy_version", sa.String(30), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
         sa.CheckConstraint("score >= 0", name="ck_session_score_nonnegative"),
         sa.CheckConstraint("current_position >= 0", name="ck_session_position_nonnegative"),
     )
