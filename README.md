@@ -2,7 +2,7 @@
 
 A personalized, profile-driven quiz and knowledge platform. It combines progressive quiz excitement with multi-perspective learning under an original product identity.
 
-> **Project status:** Product and implementation specification baseline is committed. No running application is included yet.
+> **Project status:** Product specifications and initial implementation slices are maintained in sequential draft pull requests. This repository is not yet a production deployment.
 
 ## Product experiences
 - **Play to Win:** progressive rounds, timer, lifelines, score and session result.
@@ -27,26 +27,27 @@ React/Next.js PWA · FastAPI modular monolith · PostgreSQL · Redis only when j
 - `docs/18–23`: threat model/privacy, SLOs, test strategy, DevOps, analytics and decision register.
 - `docs/24–31`: internal AI development/content operations, quality, age-aware UX and evaluation.
 - `docs/32–33`: Admin CMS/RBAC and deterministic editorial quality assurance.
-- `architecture/`: architecture decision records ADR-001 through ADR-006.
+- `docs/34–35`: immutable question authoring, revision governance, authoring API and data model.
+- `architecture/`: architecture decision records.
 - `content/`: authoring checklist, JSON examples and schemas.
 - `engineering/sql/`: PostgreSQL starter schema.
 - `engineering/`: implementation blueprint, backend/frontend module maps, migration plan, acceptance tests, workplan, AI-assisted development workflow and gameplay API contract.
-- `backend/`: initial FastAPI scaffold, environment example, gameplay domain rules and unit-test starter.
+- `backend/`: FastAPI scaffold, migrations, gameplay/admin APIs and tests.
 - `ai/`: internal-only agent, memory and MCP governance artefacts.
 
 ## Recommended implementation sequence
 1. Resolve open decisions in `docs/23-glossary-and-product-decisions.md`.
-2. Convert starter SQL into reviewed Alembic migrations.
-3. Implement domain services and deterministic selection.
-4. Implement content import, validation, editorial quality review, approval and publication.
-5. Implement server-authoritative gameplay and API contracts.
+2. Review and merge the foundational backend and admin PRs in dependency order.
+3. Complete governed authoring workspaces, immutable revisions, validation and review.
+4. Materialize immutable releases and verify storage/database reconciliation.
+5. Complete learner PWA, gameplay flows, lifelines and progress.
 6. Complete security, accessibility, performance and release gates before public launch.
 
 ## AI architecture boundary
-**AI is development-only.** It supports internal requirements analysis, architecture, code assistance, test generation, security review and offline content-authoring. The deployed learner application has no LLM calls, agent runtime, MCP server, vector database or AI-token dependency. Published questions and explanations are human-approved immutable content; learner personalization is deterministic and profile/session-rule based. See [ADR-006](architecture/ADR-006-ai-development-only.md) and [the AI development workflow](engineering/ai-assisted-development-workflow.md).
+**AI is development-only.** It supports internal requirements analysis, architecture, code assistance, test generation, security review and offline content-authoring. The deployed learner application has no LLM calls, agent runtime, MCP server, vector database or AI-token dependency. Published questions and explanations are human-approved immutable content; learner personalization is deterministic and profile/session-rule based. See `architecture/ADR-006-ai-development-only.md` and `engineering/ai-assisted-development-workflow.md`.
 
 ## Naming and licensing
 **QuizVeda** is a working product name; complete trademark, company-name and domain clearance before commercial use. Third-party content rights are not implied. Every pack must record provenance and usage rights.
 
 ## Specification maturity
-These files are a detailed implementation baseline, not a deployed application or a legal/security certification. Review open decisions, hosting assumptions, scoring policy and data retention before production.
+These files are an implementation baseline, not a deployed application or a legal/security certification. Review open decisions, hosting assumptions, scoring policy and data retention before production.
