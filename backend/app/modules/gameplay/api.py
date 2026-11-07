@@ -306,7 +306,7 @@ async def submit_answer(
             detail="Selected option is not valid for this question.",
         )
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if issued.deadline_at is None or issued.issued_at is None:
         raise HTTPException(status_code=409, detail="Question has not been issued.")
     if now > issued.deadline_at:
