@@ -36,3 +36,6 @@ Question editor, taxonomy manager, bulk import, validation report, review queue,
 
 ## Business rules
 One accepted attempt per question; no duplicate question revision in a session; answer keys never appear in public assets; content must be approved and published; question source/provenance and usage rights required.
+
+## AI boundary
+No learner-facing feature may invoke an LLM or AI agent. Questions, hints, explanations and lifeline effects are drawn from approved content/configuration and deterministic rules. Topic recommendations are rule-based and explainable. AI-assisted content drafts must pass schema, factual, rights, safety and editorial review before publication; drafts are never served directly.
