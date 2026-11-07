@@ -36,3 +36,7 @@ Evidence retrieval -> blueprint -> draft -> independent solve + distractor audit
 
 ## Versioning and tests
 Pin skill versions in every agent run. Maintain positive, negative, adversarial and edge-case fixtures. Evaluate changes against frozen regression sets. Breaking output changes require schema version bump and migration. Production eligibility requires owner, schema, test set, failure behavior, permissions, budget, observability and rollback.
+
+
+## Scope restriction
+Every agent and skill in this registry is for internal development/content operations only. Skills are not installed in or callable by the learner application. Any learner-facing recommendation skill is a development-time specification/review aid; runtime recommendations are deterministic rules implemented and tested as ordinary application code. The Memory Graph Read/Write skill indexes product/engineering/content knowledge only; it must not create persistent learner profiles or behavioral dossiers.
