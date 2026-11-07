@@ -26,6 +26,7 @@ React/Next.js PWA · FastAPI modular monolith · PostgreSQL · Redis only when j
 - `docs/16–17`: OpenAPI contract, errors, events and idempotency.
 - `docs/18–23`: threat model/privacy, SLOs, test strategy, DevOps, analytics and decision register.
 - `docs/24–31`: internal AI development/content operations, quality, age-aware UX and evaluation.
+- `docs/32–33`: Admin CMS/RBAC and deterministic editorial quality assurance.
 - `architecture/`: architecture decision records ADR-001 through ADR-006.
 - `content/`: authoring checklist, JSON examples and schemas.
 - `engineering/sql/`: PostgreSQL starter schema.
@@ -37,7 +38,7 @@ React/Next.js PWA · FastAPI modular monolith · PostgreSQL · Redis only when j
 1. Resolve open decisions in `docs/23-glossary-and-product-decisions.md`.
 2. Convert starter SQL into reviewed Alembic migrations.
 3. Implement domain services and deterministic selection.
-4. Implement content import, validation, review and publication.
+4. Implement content import, validation, editorial quality review, approval and publication.
 5. Implement server-authoritative gameplay and API contracts.
 6. Complete security, accessibility, performance and release gates before public launch.
 
