@@ -27,3 +27,6 @@ Target WCAG 2.2 AA. Keyboard navigation, visible focus, semantic labels, screen-
 
 ## Visual identity
 Create a distinct QuizVeda visual language. Do not imitate KBC's logo, palette/layout signature, stage treatment, sound cues, host or exact question reveal sequence.
+
+## Profile-driven presentation
+The interface uses optional profile preferences to select accessible defaults for typography, content density, navigation guidance, language, reading complexity, motion and assistance. Age-aware defaults and safeguards are specified in docs/30-age-aware-personalized-ux.md. Users can override settings independently; do not infer age or reduce factual depth. Validate each profile experience with representative usability testing.
