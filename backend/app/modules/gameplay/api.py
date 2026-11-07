@@ -227,7 +227,7 @@ async def get_current_question(
     db: DbSession,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
 ) -> dict:
-    session = await _owned_session(db, session_id, credentials)
+    session = await _owned_session(db, session_id, credentials, lock=True)
     return await _current_question(db, session)
 
 
