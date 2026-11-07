@@ -38,3 +38,9 @@ Structured output includes status, artifact, evidence references, issues, confid
 
 ## Failure handling
 Fail closed for answer-key uncertainty, child safety, privacy, rights and publication. Retry transient failures with bounded attempts. Escalate low-confidence or conflicting evidence. Preserve drafts and review history. Agents cannot grant permissions or call unlisted tools.
+
+
+## Governing deployment boundary — development only
+This architecture describes an internal development and content-production toolchain, not production application services. Agents may assist product analysis, implementation, testing, security review and offline question/content drafting. They must not run in learner sessions or make runtime decisions. The learner app has no agent, LLM, MCP, vector-search or model-provider dependency. All explanations, hints and questions served to learners are authored/reviewed content in immutable published packs; all personalization is deterministic. Human approval is mandatory before any AI-assisted artifact is merged or published.
+
+Development agents work in isolated workspaces/branches, open pull requests, and rely on CI plus human review. They cannot push directly to protected main, self-approve, access production learner data/secrets, or deploy to production.
