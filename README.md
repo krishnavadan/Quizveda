@@ -28,7 +28,8 @@ React/Next.js PWA · FastAPI modular monolith · PostgreSQL · Redis only when j
 - `architecture/`: architecture decision records ADR-001 through ADR-005.
 - `content/`: authoring checklist, JSON examples and schemas.
 - `engineering/sql/`: PostgreSQL starter schema.
-- `engineering/`: engineering implementation index.
+- `engineering/`: implementation blueprint, backend/frontend module maps, migration plan, acceptance tests and workplan.
+- `backend/`: initial FastAPI scaffold, environment example, gameplay domain rules and unit-test starter.
 
 ## Recommended implementation sequence
 1. Resolve open decisions in `docs/23-glossary-and-product-decisions.md`.
