@@ -10,6 +10,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://quizveda:quizveda@localhost:5432/quizveda"
     log_level: str = "INFO"
 
+    # Provider-neutral OIDC access-token verification. Admin routes fail closed
+    # until all three values are configured in the deployment environment.
+    oidc_issuer: str = ""
+    oidc_audience: str = ""
+    oidc_jwks_url: str = ""
+    oidc_roles_claim: str = "roles"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
