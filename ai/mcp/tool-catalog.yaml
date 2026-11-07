@@ -1,0 +1,58 @@
+version: 1
+servers:
+  - name: quizveda-knowledge
+    access: read_only
+    tools:
+      - name: search_approved_knowledge
+        scope: knowledge:read
+        human_confirmation: false
+        idempotent: true
+      - name: fetch_citation
+        scope: source:read
+        human_confirmation: false
+        idempotent: true
+      - name: traverse_knowledge_graph
+        scope: graph:read
+        human_confirmation: false
+        idempotent: true
+  - name: quizveda-content
+    access: draft_scoped
+    tools:
+      - name: validate_content_pack
+        scope: content:validate
+        human_confirmation: false
+        idempotent: true
+      - name: preview_content_revision
+        scope: content:preview
+        human_confirmation: false
+        idempotent: true
+  - name: quizveda-quality
+    access: check_only
+    tools:
+      - name: run_answer_verification
+        scope: quality:verify
+        human_confirmation: false
+        idempotent: true
+      - name: run_safety_review
+        scope: quality:safety
+        human_confirmation: false
+        idempotent: true
+  - name: quizveda-admin
+    access: privileged
+    tools:
+      - name: publish_approved_version
+        scope: content:publish
+        human_confirmation: true
+        idempotent: true
+      - name: rollback_publication
+        scope: content:rollback
+        human_confirmation: true
+        idempotent: true
+policy:
+  deny_by_default: true
+  prohibit:
+    - arbitrary_sql
+    - unrestricted_shell
+    - arbitrary_url_fetch
+    - raw_learner_record_export
+    - agent_self_approval
