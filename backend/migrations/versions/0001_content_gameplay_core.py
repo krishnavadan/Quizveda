@@ -24,6 +24,10 @@ def upgrade() -> None:
         sa.Column("title", postgresql.JSONB(), nullable=False),
         sa.Column("manifest_sha256", sa.String(64), nullable=False),
         sa.Column("lifecycle_status", sa.String(20), nullable=False, server_default="validated"),
+        sa.Column("approved_by", sa.String(120), nullable=True),
+        sa.Column("approval_reference", sa.String(160), nullable=True),
+        sa.Column("approved_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
@@ -61,6 +65,7 @@ def upgrade() -> None:
         sa.Column("answer_key_option_key", sa.String(12), nullable=False),
         sa.Column("estimated_seconds", sa.Integer(), nullable=False, server_default="30"),
         sa.Column("approved", sa.Boolean(), nullable=False, server_default=sa.false()),
+        sa.Column("metadata_json", postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb")),
         sa.UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),
         sa.CheckConstraint(
             "estimated_seconds BETWEEN 5 AND 600",
@@ -86,11 +91,13 @@ def upgrade() -> None:
         "quiz_sessions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("guest_session_hash", sa.String(64), nullable=False),
+        sa.Column("pack_version_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("content_pack_versions.id", ondelete="RESTRICT"), nullable=False),
         sa.Column("mode", sa.String(24), nullable=False),
         sa.Column("locale", sa.String(16), nullable=False),
         sa.Column("status", sa.String(20), nullable=False, server_default="active"),
         sa.Column("score", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("current_position", sa.Integer(), nullable=False, server_default="0"),
+        sa.Column("question_count", sa.Integer(), nullable=False),
         sa.Column("selection_seed", sa.String(64), nullable=False),
         sa.Column("policy_version", sa.String(30), nullable=False),
         sa.Column(
@@ -101,6 +108,7 @@ def upgrade() -> None:
         ),
         sa.CheckConstraint("score >= 0", name="ck_session_score_nonnegative"),
         sa.CheckConstraint("current_position >= 0", name="ck_session_position_nonnegative"),
+        sa.CheckConstraint("question_count > 0", name="ck_session_question_count_positive"),
     )
     op.create_table(
         "session_questions",
@@ -119,6 +127,8 @@ def upgrade() -> None:
         ),
         sa.Column("position", sa.Integer(), nullable=False),
         sa.Column("status", sa.String(16), nullable=False, server_default="issued"),
+        sa.Column("issued_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("deadline_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("session_id", "position", name="uq_session_question_position"),
         sa.UniqueConstraint("session_id", "revision_id", name="uq_session_question_revision"),
         sa.CheckConstraint("position > 0", name="ck_session_question_position"),
