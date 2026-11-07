@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.db.models import AdminAuditEvent
@@ -81,7 +82,7 @@ async def test_admin_content_review_publish_and_audit_are_role_gated() -> None:
         app.dependency_overrides.pop(get_admin_principal, None)
 
     async with SessionLocal() as db:
-        events = (await db.scalars(__import__("sqlalchemy").select(AdminAuditEvent))).all()
+        events = (await db.scalars(select(AdminAuditEvent))).all()
         assert len(events) == 2
 
 
