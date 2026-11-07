@@ -20,8 +20,8 @@ A skill is a narrow, versioned, testable procedure, independent of model vendor.
 | S12 | Localization & Cultural Adaptation | Localization Agent |
 | S13 | JSON Schema & Pack Validation | Content pipeline |
 | S14 | Content Provenance & Rights Check | Researcher/editor |
-| S15 | Learner Recommendation Explanation | Personalization Planner |
-| S16 | Memory Graph Read/Write | authorised agents |
+| S15 | Deterministic Recommendation Policy Review | Product/QA agents |
+| S16 | Development Knowledge Graph Read/Write | authorised internal agents |
 | S17 | MCP Tool Selection & Least Privilege | Orchestrator |
 | S18 | Token Budget & Context Compression | all agents |
 | S19 | Evaluation Dataset Generation | Test Engineer |
