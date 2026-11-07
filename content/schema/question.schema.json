@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quizveda.example/schemas/question.schema.json",
+  "title": "QuizVeda Question",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["question_key", "revision", "locale", "type", "stem", "options", "answer_key", "explanation", "difficulty", "taxonomy", "provenance"],
+  "properties": {
+    "question_key": {"type": "string", "minLength": 3, "maxLength": 160},
+    "revision": {"type": "integer", "minimum": 1},
+    "locale": {"type": "string"},
+    "type": {"const": "single_choice"},
+    "stem": {"type": "string", "minLength": 8},
+    "options": {
+      "type": "array", "minItems": 2, "maxItems": 6,
+      "items": {
+        "type": "object", "required": ["key", "text"],
+        "properties": {"key": {"type": "string"}, "text": {"type": "string", "minLength": 1}},
+        "additionalProperties": false
+      }
+    },
+    "answer_key": {
+      "type": "object", "required": ["option_key"],
+      "properties": {"option_key": {"type": "string"}},
+      "additionalProperties": false
+    },
+    "explanation": {"type": "string", "minLength": 1},
+    "difficulty": {"enum": ["beginner", "standard", "advanced", "expert"]},
+    "estimated_seconds": {"type": "integer", "minimum": 5, "maximum": 600},
+    "taxonomy": {"type": "array", "items": {"type": "object", "required": ["node_key"], "properties": {"node_key": {"type": "string"}, "weight": {"type": "number", "minimum": 0, "maximum": 1}}, "additionalProperties": false}},
+    "cognitive_objectives": {"type": "array", "items": {"enum": ["remember", "understand", "apply", "analyze", "evaluate", "create"]}},
+    "perspectives": {"type": "array", "items": {"type": "object", "required": ["key"], "properties": {"key": {"type": "string"}, "weight": {"type": "number", "minimum": 0, "maximum": 1}}, "additionalProperties": false}},
+    "provenance": {"type": "object", "required": ["rights_status"], "properties": {"source_type": {"type": "string"}, "source_reference": {"type": "string"}, "rights_status": {"type": "string"}, "reviewed_at": {"type": "string"}}, "additionalProperties": true}
+  }
+}
