@@ -24,3 +24,7 @@ Authenticate clients with workload identity or short-lived scoped credentials. A
 Expose versioned read-only resources for approved taxonomy, schemas, published packs, policies and agent/skill manifests. Do not expose raw learner records broadly. Set timeouts, bounded retries, circuit breakers, concurrency caps and response-size limits. Cache immutable resources by content hash. Never retry non-idempotent writes without idempotency keys.
 
 Start with one internal knowledge/content MCP server and read-only/validation tools. Add publication tools only after RBAC, audit, confirmation and rollback tests. MCP is not required for learner gameplay.
+
+
+## Development-only scope
+All MCP servers and tools described here are internal development/content-authoring tools. They are not exposed to the learner app or production gameplay services. Development tools must use isolated credentials, synthetic/sanitized data and scoped repository access. Production learner data, production secrets and unrestricted deployment privileges are prohibited. Changes are delivered through pull requests, CI and human approval; no agent may self-approve or directly publish/deploy.
