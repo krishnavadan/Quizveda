@@ -88,3 +88,21 @@ async def test_oidc_token_with_wrong_issuer_is_rejected(monkeypatch) -> None:
             settings,
         )
     assert exc.value.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_admin_api_fails_closed_when_identity_provider_is_unconfigured() -> None:
+    settings = Settings()
+    with pytest.raises(HTTPException) as exc:
+        await security.get_admin_principal(
+            HTTPAuthorizationCredentials(scheme="Bearer", credentials="untrusted-token"),
+            settings,
+        )
+    assert exc.value.status_code == 503
+
+
+@pytest.mark.asyncio
+async def test_admin_api_rejects_missing_bearer_token() -> None:
+    with pytest.raises(HTTPException) as exc:
+        await security.get_admin_principal(None, Settings())
+    assert exc.value.status_code == 401
