@@ -137,3 +137,115 @@ async def test_content_quality_report_is_advisory_and_role_gated() -> None:
             assert "do not replace" in report["disclaimer"]
     finally:
         app.dependency_overrides.pop(get_admin_principal, None)
+
+
+
+async def test_authoring_workspace_revision_history_and_stale_write_conflict() -> None:
+    transport = ASGITransport(app=app)
+    workspace_payload = {
+        "workspace_key": "general-knowledge-en",
+        "title": {"en": "General Knowledge"},
+        "locale": "en",
+    }
+    revision = {
+        "locale": "en",
+        "stem": "Which planet is known as the Red Planet?",
+        "explanation": "Mars appears red because iron minerals on its surface have oxidized.",
+        "difficulty": "beginner",
+        "answer_key_option_key": "B",
+        "estimated_seconds": 20,
+        "options": [
+            {"key": "A", "text": "Venus", "display_order": 1},
+            {"key": "B", "text": "Mars", "display_order": 2},
+            {"key": "C", "text": "Jupiter", "display_order": 3},
+        ],
+        "taxonomy": [{"node_key": "science.astronomy", "weight": 1}],
+        "cognitive_objectives": ["remember"],
+        "perspectives": [],
+        "provenance": {"rights_status": "original"},
+    }
+    try:
+        _set_principal("author-1", "content_editor")
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            created = await client.post(
+                "/api/v1/admin/authoring-workspaces",
+                json=workspace_payload,
+            )
+            assert created.status_code == 200
+            workspace = created.json()
+            workspace_id = workspace["id"]
+            assert workspace["status"] == "draft"
+            assert workspace["lock_version"] == 1
+
+            question = await client.post(
+                f"/api/v1/admin/authoring-workspaces/{workspace_id}/questions",
+                json={
+                    "question_key": "science.red-planet",
+                    "expected_workspace_lock_version": 1,
+                    "revision": revision,
+                },
+            )
+            assert question.status_code == 200
+            first = question.json()
+            assert first["revision_no"] == 1
+            assert first["workspace_lock_version"] == 2
+            assert len(first["content_sha256"]) == 64
+
+            revised_payload = {
+                **revision,
+                "explanation": "Mars looks red due to iron oxide, commonly called rust, on its surface.",
+                "expected_revision_no": 1,
+                "expected_workspace_lock_version": 2,
+            }
+            revised = await client.post(
+                f"/api/v1/admin/authoring-workspaces/{workspace_id}/questions/{first['question_id']}/revisions",
+                json=revised_payload,
+            )
+            assert revised.status_code == 200
+            second = revised.json()
+            assert second["revision_no"] == 2
+            assert second["workspace_lock_version"] == 3
+            assert second["content_sha256"] != first["content_sha256"]
+
+            stale = await client.post(
+                f"/api/v1/admin/authoring-workspaces/{workspace_id}/questions/{first['question_id']}/revisions",
+                json=revised_payload,
+            )
+            assert stale.status_code == 409
+
+            listed = await client.get("/api/v1/admin/authoring-workspaces")
+            assert listed.status_code == 200
+            assert any(item["id"] == workspace_id for item in listed.json()["items"])
+    finally:
+        app.dependency_overrides.pop(get_admin_principal, None)
+
+
+async def test_authoring_rejects_unknown_fields_and_non_editor_roles() -> None:
+    transport = ASGITransport(app=app)
+    try:
+        _set_principal("learner-user", "learner")
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            denied = await client.post(
+                "/api/v1/admin/authoring-workspaces",
+                json={
+                    "workspace_key": "sample-workspace",
+                    "title": {"en": "Sample"},
+                    "locale": "en",
+                    "status": "published",
+                },
+            )
+            assert denied.status_code == 403
+
+            _set_principal("editor-user", "content_editor")
+            rejected = await client.post(
+                "/api/v1/admin/authoring-workspaces",
+                json={
+                    "workspace_key": "sample-workspace",
+                    "title": {"en": "Sample"},
+                    "locale": "en",
+                    "status": "published",
+                },
+            )
+            assert rejected.status_code == 422
+    finally:
+        app.dependency_overrides.pop(get_admin_principal, None)
