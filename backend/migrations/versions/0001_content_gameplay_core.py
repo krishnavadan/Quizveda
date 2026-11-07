@@ -145,6 +145,7 @@ def upgrade() -> None:
         ),
         sa.Column("idempotency_key", sa.String(100), nullable=False, unique=True),
         sa.Column("selected_option_key", sa.String(12), nullable=False),
+        sa.Column("outcome_status", sa.String(16), nullable=False, server_default="answered"),
         sa.Column("is_correct", sa.Boolean(), nullable=False),
         sa.Column("awarded_score", sa.Integer(), nullable=False, server_default="0"),
         sa.Column(
