@@ -34,3 +34,13 @@ Open `http://localhost:3000/login`.
 - Configure the backend CORS allowlist for the exact console origin.
 - The backend remains authoritative for all permissions and audit events.
 - No learner data, gameplay routes or runtime AI services are part of this console.
+
+## Content review and release workflows
+
+- Select a content pack from the dashboard to inspect its metadata and latest question revisions.
+- Question preview includes options, answer key and authored explanation for authorised content reviewers.
+- The approval form submits a mandatory approval reference to the backend.
+- Publishing submits a release reference; the API enforces reviewer/publisher separation and returns conflict/permission errors for invalid transitions.
+- Audit history calls the admin-only endpoint. A user without the administrator role receives a backend 403; hiding a link is never treated as access control.
+
+The UI intentionally does not edit question text or mutate published content. Content import and authoring remain in the validated offline content-pack workflow.
