@@ -19,12 +19,15 @@ type Question = {
 };
 type QuestionResponse = { items: Question[] };
 type ApprovalResponse = ContentPack & { lifecycle_status: string };
+type QualityFinding = { question_key: string; code: string; severity: "advisory"; message: string };
+type QualityReport = { question_count: number; advisory_count: number; duplicate_stem_groups: { question_keys: string[]; count: number }[]; findings: QualityFinding[]; disclaimer: string };
 
 export default function ContentPackDetailPage() {
   const { packId } = useParams<{ packId: string }>();
   const router = useRouter();
   const [pack, setPack] = useState<ContentPack | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [quality, setQuality] = useState<QualityReport | null>(null);
   const [reference, setReference] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -35,12 +38,14 @@ export default function ContentPackDetailPage() {
     setLoading(true);
     setError("");
     try {
-      const [packResult, questionResult] = await Promise.all([
+      const [packResult, questionResult, qualityResult] = await Promise.all([
         adminRequest<ContentPack>(`/content-packs/${encodeURIComponent(packId)}`),
         adminRequest<QuestionResponse>(`/content-packs/${encodeURIComponent(packId)}/questions?limit=100&offset=0`),
+        adminRequest<QualityReport>(`/content-packs/${encodeURIComponent(packId)}/quality-report`),
       ]);
       setPack(packResult);
       setQuestions(questionResult.items ?? []);
+      setQuality(qualityResult);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to load pack details.");
     } finally {
@@ -96,6 +101,12 @@ export default function ContentPackDetailPage() {
       <section className="data-section question-section">
         <div className="section-heading"><div><span className="eyebrow">QUALITY REVIEW</span><h2>Question preview</h2><p className="muted">Review stems, options, answer keys and explanations before approving a pack.</p></div><span className="count-pill">{questions.length} questions</span></div>
         {questions.length === 0 ? <div className="empty-state">No questions are available in this pack.</div> : <div className="question-list">{questions.map((q, index) => <article className="question-card" key={q.question_id}><div className="question-meta"><span>QUESTION {String(index + 1).padStart(2, "0")}</span><span>{q.question_key}</span><span>{q.locale}</span><span>{q.difficulty}</span><span>{q.approved ? "Approved revision" : "Pending revision"}</span></div><h3>{q.stem}</h3><ol className="option-list" type="A">{[...q.options].sort((a,b)=>a.display_order-b.display_order).map(option => <li key={option.key}><span>{option.text}</span>{option.key === q.answer_key_option_key && <b>Correct answer</b>}</li>)}</ol>{q.explanation && <div className="explanation"><strong>Explanation</strong><p>{q.explanation}</p></div>}</article>)}</div>}
+      </section>
+      <section className="data-section quality-section">
+        <div className="section-heading"><div><span className="eyebrow">EDITORIAL QA</span><h2>Content quality signals</h2><p className="muted">Deterministic checks highlight items worth a human reviewer&apos;s attention.</p></div><span className="count-pill">{quality?.advisory_count ?? 0} advisories</span></div>
+        {!quality ? <div className="empty-state">Quality report is unavailable.</div> : quality.findings.length === 0 ? <div className="empty-state">No advisory signals were found by the current checks. This is not a guarantee of correctness.</div> : <ul className="quality-findings">{quality.findings.map((finding, index) => <li key={`${finding.question_key}-${finding.code}-${index}`}><span className="quality-code">{finding.code.replaceAll("_", " ")}</span><strong>{finding.question_key}</strong><p>{finding.message}</p></li>)}</ul>}
+        {quality?.duplicate_stem_groups.length ? <p className="quality-duplicates">Potential duplicate stem groups: {quality.duplicate_stem_groups.map(group => group.question_keys.join(", ")).join(" · ")}</p> : null}
+        <p className="quality-disclaimer">{quality?.disclaimer}</p>
       </section>
       <section className="release-panel">
         <div><span className="eyebrow">CONTROLLED RELEASE</span><h2>Lifecycle action</h2><p>Every action is re-authorised by the API and written to the audit log. A separate reviewer and publisher are required.</p></div>
