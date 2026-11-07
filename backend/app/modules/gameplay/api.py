@@ -1,6 +1,6 @@
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -87,7 +87,7 @@ async def _current_question(db: AsyncSession, session: QuizSession) -> dict:
         if revision is None:
             raise HTTPException(status_code=500, detail="Question content is unavailable.")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if issued.issued_at is None:
             issued.status = "issued"
             issued.issued_at = now
@@ -301,7 +301,10 @@ async def submit_answer(
 
     valid_options = {option.option_key for option in revision.options}
     if payload.selected_option_key not in valid_options:
-        raise HTTPException(status_code=422, detail="Selected option is not valid for this question.")
+        raise HTTPException(
+            status_code=422,
+            detail="Selected option is not valid for this question.",
+        )
 
     now = datetime.now(timezone.utc)
     if issued.deadline_at is None or issued.issued_at is None:
