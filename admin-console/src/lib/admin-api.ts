@@ -9,7 +9,7 @@ export type ContentPack = {
   pack_key?: string;
   title?: string;
   version?: string;
-  status?: string;
+  lifecycle_status?: string;
   locale?: string;
   [key: string]: unknown;
 };
