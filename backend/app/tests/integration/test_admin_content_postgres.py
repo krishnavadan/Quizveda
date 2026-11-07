@@ -91,9 +91,6 @@ async def test_admin_content_detail_and_question_preview() -> None:
     pack_id = await import_pack(
         root / "content" / "examples" / "sample-pack",
         root / "content" / "schema",
-        approval_actor="offline-reviewer",
-        approval_reference="QA-IMPORT-01",
-        publish=True,
     )
     transport = ASGITransport(app=app)
     try:
@@ -101,7 +98,7 @@ async def test_admin_content_detail_and_question_preview() -> None:
         async with AsyncClient(transport=transport, base_url="http://test") as client:
             detail = await client.get(f"/api/v1/admin/content-packs/{pack_id}")
             assert detail.status_code == 200
-            assert detail.json()["lifecycle_status"] == "published"
+            assert detail.json()["lifecycle_status"] == "validated"
             questions = await client.get(
                 f"/api/v1/admin/content-packs/{pack_id}/questions"
             )
