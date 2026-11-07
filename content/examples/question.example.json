@@ -1,0 +1,26 @@
+{
+  "question_key": "science-basics-0001",
+  "revision": 1,
+  "locale": "en-IN",
+  "type": "single_choice",
+  "stem": "Which process do green plants primarily use to convert light energy into chemical energy?",
+  "options": [
+    {"key": "A", "text": "Photosynthesis"},
+    {"key": "B", "text": "Respiration"},
+    {"key": "C", "text": "Fermentation"},
+    {"key": "D", "text": "Transpiration"}
+  ],
+  "answer_key": {"option_key": "A"},
+  "explanation": "Photosynthesis converts light energy into chemical energy stored in sugars.",
+  "difficulty": "beginner",
+  "estimated_seconds": 25,
+  "taxonomy": [{"node_key": "biology", "weight": 1.0}],
+  "cognitive_objectives": ["remember", "understand"],
+  "perspectives": [{"key": "scientist", "weight": 1.0}],
+  "provenance": {
+    "source_type": "editorial_original",
+    "source_reference": "Editorially authored sample",
+    "rights_status": "original",
+    "reviewed_at": "2026-11-08"
+  }
+}
