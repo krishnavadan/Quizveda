@@ -20,3 +20,7 @@ Blank profile can play; explicit choice wins; personalization-off ignores behavi
 
 ## Age-aware presentation extension
 Add an optional self-declared broad age band and age-appropriate presentation defaults as defined in docs/30-age-aware-personalized-ux.md. Do not infer age or use it as a proxy for ability. Age band may adjust reading complexity, navigation guidance and safety defaults only; learners can override presentation preferences. Apply jurisdiction-specific child privacy and guardian-control review before launch. Guest play remains supported where appropriate.
+
+
+## Implementation constraint: deterministic only
+All learner personalization is implemented using explicit profile/session preferences and deterministic rules. No LLM, agent, vector search or hidden learner-memory graph is consulted at runtime. The app may use relational profile preferences and opted-in progress records for transparent rules (for example, selected topic and difficulty range). Any AI-generated content or metadata is offline draft material only and cannot enter a published pack without human approval.
