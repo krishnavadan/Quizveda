@@ -38,6 +38,7 @@ class CreateSessionRequest(BaseModel):
 
 
 class SubmitAnswerRequest(BaseModel):
+    question_id: UUID
     selected_option_key: str = Field(min_length=1, max_length=12)
 
 
@@ -66,48 +67,56 @@ async def _owned_session(
 
 
 async def _current_question(db: AsyncSession, session: QuizSession) -> dict:
-    if session.status != "active" or session.current_position >= session.question_count:
+    while session.status == "active" and session.current_position < session.question_count:
+        position = session.current_position + 1
+        issued = await db.scalar(
+            select(SessionQuestion).where(
+                SessionQuestion.session_id == session.id,
+                SessionQuestion.position == position,
+            )
+        )
+        if issued is None:
+            raise HTTPException(status_code=500, detail="Session question sequence is incomplete.")
+
+        revision = await db.scalar(
+            select(QuestionRevision)
+            .options(selectinload(QuestionRevision.options))
+            .where(QuestionRevision.id == issued.revision_id)
+        )
+        if revision is None:
+            raise HTTPException(status_code=500, detail="Question content is unavailable.")
+
+        now = datetime.now(timezone.utc)
+        if issued.issued_at is None:
+            issued.status = "issued"
+            issued.issued_at = now
+            issued.deadline_at = now + timedelta(seconds=revision.estimated_seconds)
+            await db.commit()
+        elif issued.deadline_at and now > issued.deadline_at:
+            issued.status = "timed_out"
+            session.current_position += 1
+            if session.current_position >= session.question_count:
+                session.status = "completed"
+            await db.commit()
+            continue
+
         return {
-            "status": "completed",
-            "score": session.score,
-            "question_count": session.question_count,
+            "status": "active",
+            "question_id": str(issued.id),
+            "position": issued.position,
+            "stem": revision.stem,
+            "options": [
+                {"key": option.option_key, "text": option.text}
+                for option in sorted(revision.options, key=lambda item: item.display_order)
+            ],
+            "time_limit_seconds": revision.estimated_seconds,
+            "deadline_at": issued.deadline_at.isoformat() if issued.deadline_at else None,
         }
 
-    position = session.current_position + 1
-    issued = await db.scalar(
-        select(SessionQuestion).where(
-            SessionQuestion.session_id == session.id,
-            SessionQuestion.position == position,
-        )
-    )
-    if issued is None:
-        raise HTTPException(status_code=500, detail="Session question sequence is incomplete.")
-
-    revision = await db.scalar(
-        select(QuestionRevision)
-        .options(selectinload(QuestionRevision.options))
-        .where(QuestionRevision.id == issued.revision_id)
-    )
-    if revision is None:
-        raise HTTPException(status_code=500, detail="Question content is unavailable.")
-
-    if issued.issued_at is None:
-        now = datetime.now(timezone.utc)
-        issued.issued_at = now
-        issued.deadline_at = now + timedelta(seconds=revision.estimated_seconds)
-        await db.commit()
-
     return {
-        "status": "active",
-        "question_id": str(issued.id),
-        "position": issued.position,
-        "stem": revision.stem,
-        "options": [
-            {"key": option.option_key, "text": option.text}
-            for option in sorted(revision.options, key=lambda item: item.display_order)
-        ],
-        "time_limit_seconds": revision.estimated_seconds,
-        "deadline_at": issued.deadline_at.isoformat() if issued.deadline_at else None,
+        "status": "completed",
+        "score": session.score,
+        "question_count": session.question_count,
     }
 
 
@@ -123,9 +132,9 @@ async def create_session(payload: CreateSessionRequest, db: DbSession) -> dict:
     if pack is None:
         raise HTTPException(status_code=404, detail="Published content pack version not found.")
 
-    revisions = (
-        await db.scalars(
-            select(QuestionRevision)
+    rows = (
+        await db.execute(
+            select(QuestionRevision, Question)
             .join(Question, Question.id == QuestionRevision.question_id)
             .options(selectinload(QuestionRevision.options))
             .where(
@@ -139,20 +148,13 @@ async def create_session(payload: CreateSessionRequest, db: DbSession) -> dict:
     candidates: list[CandidateQuestion] = []
     by_key: dict[str, QuestionRevision] = {}
     scope = frozenset(payload.taxonomy_scope)
-    for revision in revisions:
-        question = await db.scalar(select(Question).where(Question.id == revision.question_id))
-        if question is None:
-            continue
+    for revision, question in rows:
         taxonomy = frozenset(
             item.get("node_key")
             for item in revision.metadata_json.get("taxonomy", [])
             if isinstance(item, dict) and isinstance(item.get("node_key"), str)
         )
-        topic_fit = (
-            len(taxonomy & scope) / len(scope)
-            if scope
-            else 1.0
-        )
+        topic_fit = len(taxonomy & scope) / len(scope) if scope else 1.0
         candidates.append(
             CandidateQuestion(
                 question_key=question.question_key,
@@ -183,7 +185,6 @@ async def create_session(payload: CreateSessionRequest, db: DbSession) -> dict:
         )
 
     guest_token = secrets.token_urlsafe(32)
-    now = datetime.now(timezone.utc)
     session = QuizSession(
         guest_session_hash=_token_hash(guest_token),
         pack_version_id=pack.id,
@@ -201,20 +202,12 @@ async def create_session(payload: CreateSessionRequest, db: DbSession) -> dict:
 
     for position, candidate in enumerate(selected, start=1):
         revision = by_key[candidate.question_key]
-        issued_at = now if position == 1 else None
-        deadline_at = (
-            now + timedelta(seconds=revision.estimated_seconds)
-            if position == 1
-            else None
-        )
         db.add(
             SessionQuestion(
                 session_id=session.id,
                 revision_id=revision.id,
                 position=position,
-                status="issued" if position == 1 else "queued",
-                issued_at=issued_at,
-                deadline_at=deadline_at,
+                status="queued",
             )
         )
     await db.commit()
@@ -256,10 +249,22 @@ async def submit_answer(
     prior = existing.first()
     if prior:
         attempt, prior_question = prior
-        if prior_question.session_id != session.id or attempt.selected_option_key != payload.selected_option_key:
+        if (
+            prior_question.session_id != session.id
+            or attempt.selected_option_key != payload.selected_option_key
+            or prior_question.id != payload.question_id
+        ):
             raise HTTPException(status_code=409, detail="Idempotency key was already used.")
+        if attempt.outcome_status == "timed_out":
+            return {
+                "status": "timed_out",
+                "total_score": session.score,
+                "next_question_available": session.status == "active",
+                "replayed": True,
+            }
         revision = await db.get(QuestionRevision, prior_question.revision_id)
         return {
+            "status": "answered",
             "is_correct": attempt.is_correct,
             "score_delta": attempt.awarded_score,
             "total_score": session.score,
@@ -282,8 +287,8 @@ async def submit_answer(
     )
     if issued is None:
         raise HTTPException(status_code=409, detail="No current question is available.")
-    if issued.status == "answered":
-        raise HTTPException(status_code=409, detail="Question has already been answered.")
+    if issued.id != payload.question_id:
+        raise HTTPException(status_code=409, detail="Submitted question is no longer current.")
 
     revision = await db.scalar(
         select(QuestionRevision)
@@ -298,7 +303,19 @@ async def submit_answer(
         raise HTTPException(status_code=422, detail="Selected option is not valid for this question.")
 
     now = datetime.now(timezone.utc)
-    if issued.deadline_at and now > issued.deadline_at:
+    if issued.deadline_at is None or issued.issued_at is None:
+        raise HTTPException(status_code=409, detail="Question has not been issued.")
+    if now > issued.deadline_at:
+        db.add(
+            AnswerAttempt(
+                session_question_id=issued.id,
+                idempotency_key=idempotency_key,
+                selected_option_key=payload.selected_option_key,
+                outcome_status="timed_out",
+                is_correct=False,
+                awarded_score=0,
+            )
+        )
         issued.status = "timed_out"
         session.current_position += 1
         if session.current_position >= session.question_count:
@@ -308,6 +325,7 @@ async def submit_answer(
             "status": "timed_out",
             "total_score": session.score,
             "next_question_available": session.status == "active",
+            "replayed": False,
         }
 
     is_correct = payload.selected_option_key == revision.answer_key_option_key
@@ -317,6 +335,7 @@ async def submit_answer(
             session_question_id=issued.id,
             idempotency_key=idempotency_key,
             selected_option_key=payload.selected_option_key,
+            outcome_status="answered",
             is_correct=is_correct,
             awarded_score=score_delta,
         )
@@ -329,6 +348,7 @@ async def submit_answer(
     await db.commit()
 
     return {
+        "status": "answered",
         "is_correct": is_correct,
         "score_delta": score_delta,
         "total_score": session.score,
