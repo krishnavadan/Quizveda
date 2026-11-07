@@ -65,7 +65,12 @@ def upgrade() -> None:
         sa.Column("answer_key_option_key", sa.String(12), nullable=False),
         sa.Column("estimated_seconds", sa.Integer(), nullable=False, server_default="30"),
         sa.Column("approved", sa.Boolean(), nullable=False, server_default=sa.false()),
-        sa.Column("metadata_json", postgresql.JSONB(), nullable=False, server_default=sa.text("'{}'::jsonb")),
+        sa.Column(
+            "metadata_json",
+            postgresql.JSONB(),
+            nullable=False,
+            server_default=sa.text("'{}'::jsonb"),
+        ),
         sa.UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),
         sa.CheckConstraint(
             "estimated_seconds BETWEEN 5 AND 600",
@@ -91,7 +96,12 @@ def upgrade() -> None:
         "quiz_sessions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("guest_session_hash", sa.String(64), nullable=False),
-        sa.Column("pack_version_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("content_pack_versions.id", ondelete="RESTRICT"), nullable=False),
+        sa.Column(
+            "pack_version_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("content_pack_versions.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
         sa.Column("mode", sa.String(24), nullable=False),
         sa.Column("locale", sa.String(16), nullable=False),
         sa.Column("status", sa.String(20), nullable=False, server_default="active"),
