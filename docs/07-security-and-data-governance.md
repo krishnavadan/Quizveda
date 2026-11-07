@@ -20,3 +20,6 @@ Log privileged content edits, answer-key changes, approvals, publication, rollba
 
 ## Incident readiness
 Backups, tested restore, credential/key rotation, containment runbooks, severity ownership, evidence preservation and notification decision process.
+
+## AI development environment isolation
+Development agents must use synthetic or explicitly sanitized data, scoped repository access and short-lived credentials. They must not access production learner records, production secrets or unrestricted production systems. No agent may self-approve, publish, deploy, alter access policy or modify production data. All code/content changes flow through reviewed pull requests and CI; privileged release actions require human authorization and audit. The production learner app has no AI runtime or model credentials.
