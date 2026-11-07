@@ -11,6 +11,7 @@ export type ContentPack = {
   version?: string;
   lifecycle_status?: string;
   locale?: string;
+  manifest_sha256?: string | null;
   [key: string]: unknown;
 };
 
