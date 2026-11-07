@@ -7,12 +7,21 @@ const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
 export type ContentPack = {
   id: string;
   pack_key?: string;
-  title?: string;
+  title?: Record<string, string> | string;
   version?: string;
   lifecycle_status?: string;
   locale?: string;
   [key: string]: unknown;
 };
+
+export function contentPackTitle(pack: ContentPack): string {
+  if (typeof pack.title === "string") return pack.title;
+  if (pack.title && typeof pack.title === "object") {
+    const localized = pack.title[pack.locale ?? ""] ?? Object.values(pack.title)[0];
+    if (localized) return localized;
+  }
+  return pack.pack_key ?? pack.id;
+}
 
 export async function adminRequest<T>(path: string): Promise<T> {
   if (!apiBase) throw new Error("Missing configuration: NEXT_PUBLIC_API_BASE_URL");
