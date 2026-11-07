@@ -19,3 +19,6 @@ Broad audience; optional profile; guest play; Play to Win and Play to Learn; Cla
 10. Browser/device support matrix.
 
 Resolve in ADR/configuration; do not invent policy silently in code.
+
+## Governing AI decision (2026-11-08)
+AI is development-only: internal engineering assistance and offline content drafting/review support. The learner-facing production application contains no AI runtime. Gameplay, question selection, explanation delivery, scoring, lifelines, personalization and progress are deterministic. Human-approved, versioned content is the only content served to learners. This decision supersedes the earlier hybrid optional-AI baseline wording above.
