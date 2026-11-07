@@ -1,0 +1,21 @@
+{
+  "pack_key": "general-knowledge-en-in",
+  "version": "1.0.0",
+  "schema_version": "1.0",
+  "locale": "en-IN",
+  "title": {"en-IN": "General Knowledge"},
+  "description": {"en-IN": "Starter sample pack"},
+  "taxonomy_scope": ["general-knowledge"],
+  "question_count": 1,
+  "files": [
+    {
+      "path": "questions/questions-0001.jsonl",
+      "media_type": "application/x-ndjson",
+      "sha256": "REPLACE_WITH_REAL_SHA256",
+      "bytes": 2048,
+      "records": 1
+    }
+  ],
+  "publisher": {"name": "QuizVeda Editorial"},
+  "provenance": {"rights_status": "original_or_cleared", "reviewed_at": "2026-11-08"}
+}
