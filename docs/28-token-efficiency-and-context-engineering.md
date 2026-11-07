@@ -23,3 +23,7 @@ Compression preserves references, uncertainty, exclusions and constraints. Contr
 
 ## Metrics
 Cost per accepted question/pack, tokens per successful task, first-pass acceptance, retry rate, escalation rate, retrieval hit rate, factual error rate and reviewer correction rate. Optimise quality-adjusted cost.
+
+
+## Runtime separation
+Token budgets and model routing apply only to internal development/content-production tasks. Learner gameplay incurs zero model tokens and does not depend on model availability. Any AI-assisted content must be verified, human-approved and published as immutable static content before the learner app can serve it.
