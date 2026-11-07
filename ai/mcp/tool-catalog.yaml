@@ -1,4 +1,6 @@
 version: 1
+scope: internal_development_and_offline_content_authoring_only
+not_for_production_learner_runtime: true
 servers:
   - name: quizveda-knowledge
     access: read_only
