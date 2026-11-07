@@ -14,3 +14,6 @@ Backward-compatible migrations; deploy additive schema before relying on it; fea
 
 ## Operations
 Environment config validated at startup; separate least-privilege credentials; secrets manager; runbooks for API outage, DB saturation, queue backlog, failed publish, stale CDN, answer-key exposure, account compromise, restore and rollback.
+
+## Production AI exclusion
+Production images and runtime manifests must exclude LLM/agent/MCP packages and model credentials. CI should fail if prohibited AI runtime dependencies or AI secret variables are introduced without an approved ADR change. The production network policy should not require or allow model-provider egress for learner functionality. AI development tools operate outside production and submit changes through pull requests.
