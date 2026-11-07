@@ -1,6 +1,6 @@
-from uuid import uuid4
+import pytest
 
-from app.modules.gameplay.domain import evaluate_option_answer
+from app.modules.gameplay.domain import GameplayError, evaluate_option_answer
 
 
 def test_correct_option_awards_score() -> None:
@@ -27,10 +27,6 @@ def test_wrong_option_awards_zero() -> None:
 
 
 def test_negative_score_is_rejected() -> None:
-    import pytest
-
-    from app.modules.gameplay.domain import GameplayError
-
     with pytest.raises(GameplayError, match="non-negative"):
         evaluate_option_answer(
             selected_option_key="A",
