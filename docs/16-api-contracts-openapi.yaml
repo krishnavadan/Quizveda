@@ -1,0 +1,160 @@
+openapi: 3.1.0
+info:
+  title: QuizVeda API
+  version: 1.0.0
+  description: Initial API contract; replace example server URL per environment.
+servers:
+  - url: https://api.example.invalid/v1
+security:
+  - bearerAuth: []
+paths:
+  /catalog:
+    get:
+      security: []
+      summary: Browse published taxonomy
+      parameters:
+        - in: query
+          name: locale
+          schema: { type: string, default: en-IN }
+        - in: query
+          name: parent_id
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Published taxonomy nodes }
+  /me:
+    get:
+      summary: Get current account and optional profile
+      responses:
+        '200': { description: Account and profile }
+        '401': { description: Unauthorized }
+    patch:
+      summary: Update optional profile/preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                learning_stage: { type: [string, 'null'] }
+                occupation_group: { type: [string, 'null'] }
+                experience_band: { type: [string, 'null'] }
+                learning_goal: { type: [string, 'null'] }
+                preferred_language: { type: string }
+                personalization_enabled: { type: boolean }
+                accessibility_preferences: { type: object }
+      responses:
+        '200': { description: Updated profile }
+        '400': { description: Validation error }
+  /sessions:
+    post:
+      summary: Create session; requires Idempotency-Key
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string, minLength: 8, maxLength: 100 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mode_key, locale, question_count]
+              properties:
+                mode_key: { type: string, enum: [classic_ladder, practice, quick_quiz, topic_challenge] }
+                locale: { type: string, default: en-IN }
+                question_count: { type: integer, minimum: 5, maximum: 20 }
+                taxonomy_node_ids: { type: array, items: { type: string, format: uuid } }
+                difficulty_policy: { type: object }
+                personalization_enabled: { type: boolean, default: true }
+      responses:
+        '201': { description: Session and first question; no answer key }
+        '400': { description: Invalid configuration }
+        '409': { description: Idempotency conflict }
+  /sessions/{session_id}:
+    get:
+      summary: Get server-side session state/current question
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200': { description: Session state }
+        '404': { description: Not found }
+  /sessions/{session_id}/answers:
+    post:
+      summary: Submit active question answer; requires Idempotency-Key
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [question_token, option_key]
+              properties:
+                question_token: { type: string }
+                option_key: { type: string }
+                response_ms: { type: integer, minimum: 0 }
+      responses:
+        '200': { description: Accepted outcome; explanation may be revealed }
+        '409': { description: Already answered or inactive question }
+        '422': { description: Invalid token or expired deadline }
+  /sessions/{session_id}/lifelines:
+    post:
+      summary: Use a lifeline on active question
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [lifeline_key, question_token]
+              properties:
+                lifeline_key: { type: string, enum: [fifty_fifty, hint, skip] }
+                question_token: { type: string }
+      responses:
+        '200': { description: Lifeline result }
+        '409': { description: Unavailable or already used }
+  /sessions/{session_id}/abandon:
+    post:
+      summary: Abandon current session
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200': { description: Session abandoned }
+  /me/progress:
+    get:
+      summary: Get topic progress projection
+      responses:
+        '200': { description: Progress summary }
+  /admin/content-packs:
+    post:
+      summary: Create draft pack
+      responses:
+        '201': { description: Pack created }
+  /admin/content-packs/{pack_id}/publish:
+    post:
+      summary: Publish approved pack version
+      responses:
+        '200': { description: Publication pointer changed }
+        '409': { description: Pack version not approved }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    SessionId:
+      in: path
+      name: session_id
+      required: true
+      schema: { type: string, format: uuid }
