@@ -20,6 +20,7 @@ from app.db.models import (
     QuizSession,
     SessionQuestion,
 )
+from app.modules.gameplay.domain import evaluate_option_answer
 from app.modules.gameplay.selection import CandidateQuestion, select_questions
 
 router = APIRouter(prefix="/gameplay", tags=["gameplay"])
@@ -328,8 +329,15 @@ async def submit_answer(
             "replayed": False,
         }
 
-    is_correct = payload.selected_option_key == revision.answer_key_option_key
-    score_delta = 100 if is_correct else 0
+    outcome = evaluate_option_answer(
+        selected_option_key=payload.selected_option_key,
+        correct_option_key=revision.answer_key_option_key,
+        correct_score=100,
+        incorrect_score=0,
+        explanation=revision.explanation,
+    )
+    is_correct = outcome.is_correct
+    score_delta = outcome.score_delta
     db.add(
         AnswerAttempt(
             session_question_id=issued.id,
