@@ -48,10 +48,13 @@ def validate_pack(
         question_schema = _load_json(question_schema_path)
         manifest_errors = sorted(
             Draft202012Validator(manifest_schema, format_checker=FormatChecker()).iter_errors(manifest),
-            key=lambda error: list(error.path),
+            key=lambda error: tuple(str(part) for part in error.path),
         )
         if manifest_errors:
-            result.errors.extend(f"manifest: {'/'.join(map(str, e.path))}: {e.message}" for e in manifest_errors)
+            result.errors.extend(
+                f"manifest: {'/'.join(map(str, error.path))}: {error.message}"
+                for error in manifest_errors
+            )
             return result
 
         result.pack_key = manifest["pack_key"]
@@ -61,6 +64,7 @@ def validate_pack(
         actual_count = 0
         seen_question_keys: set[str] = set()
         seen_paths: set[str] = set()
+
         for entry in manifest["files"]:
             relative = entry["path"]
             if relative in seen_paths:
@@ -73,6 +77,7 @@ def validate_pack(
                 result.errors.append(f"{relative}: byte count mismatch")
             if hashlib.sha256(raw).hexdigest().lower() != entry["sha256"].lower():
                 result.errors.append(f"{relative}: SHA-256 mismatch")
+
             records = 0
             for line_number, line in enumerate(raw.decode("utf-8").splitlines(), start=1):
                 if not line.strip():
@@ -84,25 +89,39 @@ def validate_pack(
                 except json.JSONDecodeError as exc:
                     result.errors.append(f"{relative}:{line_number}: invalid JSON ({exc.msg})")
                     continue
-                errors = sorted(question_validator.iter_errors(question), key=lambda error: list(error.path))
+
+                errors = sorted(
+                    question_validator.iter_errors(question),
+                    key=lambda error: tuple(str(part) for part in error.path),
+                )
                 result.errors.extend(
                     f"{relative}:{line_number}: {'/'.join(map(str, error.path))}: {error.message}"
                     for error in errors
                 )
+
                 key = question.get("question_key") if isinstance(question, dict) else None
-                if key in seen_question_keys:
-                    result.errors.append(f"{relative}:{line_number}: duplicate question_key {key}")
-                elif key:
-                    seen_question_keys.add(key)
+                if isinstance(key, str):
+                    if key in seen_question_keys:
+                        result.errors.append(f"{relative}:{line_number}: duplicate question_key {key}")
+                    else:
+                        seen_question_keys.add(key)
+
                 if isinstance(question, dict):
-                    option_keys = [option.get("key") for option in question.get("options", [])]
-                    answer_key = question.get("answer_key", {}).get("option_key")
-                    if len(option_keys) != len(set(option_keys)):
-                        result.errors.append(f"{relative}:{line_number}: duplicate option keys")
-                    if answer_key not in option_keys:
-                        result.errors.append(f"{relative}:{line_number}: answer key does not match an option")
+                    options = question.get("options", [])
+                    answer = question.get("answer_key", {})
+                    if isinstance(options, list) and all(isinstance(option, dict) for option in options):
+                        option_keys = [option.get("key") for option in options]
+                        if all(isinstance(option_key, str) for option_key in option_keys):
+                            if len(option_keys) != len(set(option_keys)):
+                                result.errors.append(f"{relative}:{line_number}: duplicate option keys")
+                            answer_key = answer.get("option_key") if isinstance(answer, dict) else None
+                            if answer_key not in option_keys:
+                                result.errors.append(
+                                    f"{relative}:{line_number}: answer key does not match an option"
+                                )
             if records != entry["records"]:
                 result.errors.append(f"{relative}: record count mismatch")
+
         result.question_count = actual_count
         if actual_count != manifest["question_count"]:
             result.errors.append("manifest question_count does not match actual records")
