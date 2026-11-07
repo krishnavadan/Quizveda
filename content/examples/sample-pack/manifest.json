@@ -1,0 +1,20 @@
+{
+  "pack_key": "general-science",
+  "version": "1.0.0",
+  "schema_version": "1.0",
+  "locale": "en-IN",
+  "title": {"en-IN": "General Science"},
+  "description": {"en-IN": "A small original sample pack for validator smoke tests."},
+  "taxonomy_scope": ["science"],
+  "question_count": 1,
+  "files": [
+    {
+      "path": "questions.jsonl",
+      "media_type": "application/x-ndjson",
+      "sha256": "c23e80872e7f05a64886de0ec51b3d81e95f8dc2d2c1df592eb2c1099c5e15ed",
+      "bytes": 623,
+      "records": 1
+    }
+  ],
+  "provenance": {"created_for": "QuizVeda sample"}
+}
