@@ -34,7 +34,10 @@ async def get_admin_principal(
         raise HTTPException(status_code=401, detail="Administrator access token required.")
 
     if not settings.oidc_issuer or not settings.oidc_audience or not settings.oidc_jwks_url:
-        raise HTTPException(status_code=503, detail="Administrator identity provider is not configured.")
+        raise HTTPException(
+            status_code=503,
+            detail="Administrator identity provider is not configured.",
+        )
 
     try:
         client = _jwks_client(settings.oidc_jwks_url)
