@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { adminMutation, adminRequest, ContentPack } from "@/lib/admin-api";
+import { adminMutation, adminRequest, ContentPack, contentPackTitle } from "@/lib/admin-api";
 
 type Question = {
   question_id: string;
@@ -83,7 +83,7 @@ export default function ContentPackDetailPage() {
     <main className="detail-wrap">
       <a className="back-link" href="/admin">← Back to content inventory</a>
       <header className="detail-header">
-        <div><span className="eyebrow">CONTENT LIBRARY / PACK DETAIL</span><h1>{pack.title ?? pack.pack_key ?? pack.id}</h1><p className="muted">{pack.pack_key} · Version {pack.version} · {pack.locale}</p></div>
+        <div><span className="eyebrow">CONTENT LIBRARY / PACK DETAIL</span><h1>{contentPackTitle(pack)}</h1><p className="muted">{pack.pack_key} · Version {pack.version} · {pack.locale}</p></div>
         <span className={`status status-${status}`}>{status}</span>
       </header>
       {error && <div className="error-panel" role="alert">{error}</div>}
