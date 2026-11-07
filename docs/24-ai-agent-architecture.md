@@ -3,8 +3,8 @@
 ## Objective and execution planes
 Use bounded agents to improve research, question drafting, verification, localisation, UX and engineering. Agents are collaborators, not authorities.
 
-**Content/build plane:** authorised staff workflows may use LLMs and MCP tools.  
-**Learner plane:** gameplay, scoring, answer evaluation, timers and progression remain deterministic. Learner-facing AI may explain approved content or recommend approved topics; it cannot invent live questions or alter scores.
+**Development/content plane only:** authorised internal workflows may use LLMs and MCP tools for engineering and offline content drafting.  
+**Learner application:** no AI or agent capability is exposed. Gameplay, explanations, recommendations, scoring, timers and progression use deterministic logic and human-approved versioned content.
 
 ## Agent catalogue
 | ID | Agent | Responsibility | Authority |
