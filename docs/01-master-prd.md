@@ -47,3 +47,6 @@ A guest can complete a game without a profile; explicit topic/difficulty is hono
 
 ## Open decisions
 Trademark/domain clearance, initial content catalog and licensing, launch locales, authentication provider, final scoring curve/lifelines, hosting and cost envelope, monetization and leaderboard scope.
+
+## AI boundary (governing requirement)
+AI is used only by internal product development and content-production workflows. No AI assistant, live generated question, model-generated explanation or runtime AI recommendation is included in the learner app. All learner-facing question content and explanations are reviewed and published as versioned content. Recommendations and difficulty adaptation use deterministic rules and explicit user-controlled profile/session inputs. Production gameplay must operate with no model credentials, AI SDK or AI network access.
