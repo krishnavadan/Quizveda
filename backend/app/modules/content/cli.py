@@ -7,7 +7,7 @@ from app.modules.content.validator import validate_pack
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate a QuizVeda content pack offline.")
     parser.add_argument("pack_dir", type=Path)
-    parser.add_argument("--schema-dir", type=Path, default=Path("../../content/schema"))
+    parser.add_argument("--schema-dir", type=Path, default=Path("../content/schema))
     args = parser.parse_args()
     result = validate_pack(
         args.pack_dir,
