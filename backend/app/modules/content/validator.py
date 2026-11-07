@@ -46,8 +46,11 @@ def validate_pack(
         manifest = _load_json(manifest_path)
         manifest_schema = _load_json(manifest_schema_path)
         question_schema = _load_json(question_schema_path)
+        manifest_validator = Draft202012Validator(
+            manifest_schema, format_checker=FormatChecker()
+        )
         manifest_errors = sorted(
-            Draft202012Validator(manifest_schema, format_checker=FormatChecker()).iter_errors(manifest),
+            manifest_validator.iter_errors(manifest),
             key=lambda error: tuple(str(part) for part in error.path),
         )
         if manifest_errors:
@@ -102,19 +105,27 @@ def validate_pack(
                 key = question.get("question_key") if isinstance(question, dict) else None
                 if isinstance(key, str):
                     if key in seen_question_keys:
-                        result.errors.append(f"{relative}:{line_number}: duplicate question_key {key}")
+                        result.errors.append(
+                            f"{relative}:{line_number}: duplicate question_key {key}"
+                        )
                     else:
                         seen_question_keys.add(key)
 
                 if isinstance(question, dict):
                     options = question.get("options", [])
                     answer = question.get("answer_key", {})
-                    if isinstance(options, list) and all(isinstance(option, dict) for option in options):
+                    if isinstance(options, list) and all(
+                        isinstance(option, dict) for option in options
+                    ):
                         option_keys = [option.get("key") for option in options]
                         if all(isinstance(option_key, str) for option_key in option_keys):
                             if len(option_keys) != len(set(option_keys)):
-                                result.errors.append(f"{relative}:{line_number}: duplicate option keys")
-                            answer_key = answer.get("option_key") if isinstance(answer, dict) else None
+                                result.errors.append(
+                                    f"{relative}:{line_number}: duplicate option keys"
+                                )
+                            answer_key = (
+                                answer.get("option_key") if isinstance(answer, dict) else None
+                            )
                             if answer_key not in option_keys:
                                 result.errors.append(
                                     f"{relative}:{line_number}: answer key does not match an option"
