@@ -30,3 +30,7 @@ Validate immutable revision -> update canonical graph transactionally -> refresh
 
 ## Learner memory controls
 Explicit, editable, exportable and deletable preferences only. Minimal summaries include chosen language, topics and difficulty range. Never infer age, health, disability, religion, ethnicity or income. Guest mode creates no persistent learner memory.
+
+
+## Development-only deployment and learner-data exclusion
+The graph and retrieval index are internal authoring/engineering infrastructure only and are not deployed in the learner application. Remove LearnerPreference from graph node types: learner preferences and progress belong in the app's governed relational data model, not the AI development memory graph. Do not ingest production learner records, raw answers, profiles or identifiable analytics into this graph. Use approved product specifications, ADRs, source references, content drafts and code metadata. Runtime personalization uses explicit relational profile fields and deterministic rules only.
