@@ -3,8 +3,8 @@
 Revision ID: 0001_content_gameplay_core
 Revises:
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 revision = "0001_content_gameplay_core"
@@ -32,12 +32,22 @@ def upgrade() -> None:
         "questions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("question_key", sa.String(160), nullable=False, unique=True),
-        sa.Column("pack_version_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("content_pack_versions.id", ondelete="RESTRICT"), nullable=False),
+        sa.Column(
+            "pack_version_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("content_pack_versions.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
     )
     op.create_table(
         "question_revisions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("question_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("questions.id", ondelete="RESTRICT"), nullable=False),
+        sa.Column(
+            "question_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("questions.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
         sa.Column("revision_no", sa.Integer(), nullable=False),
         sa.Column("locale", sa.String(16), nullable=False),
         sa.Column("stem", sa.Text(), nullable=False),
@@ -52,7 +62,12 @@ def upgrade() -> None:
     op.create_table(
         "question_options",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("revision_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("question_revisions.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "revision_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("question_revisions.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("option_key", sa.String(12), nullable=False),
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("display_order", sa.Integer(), nullable=False),
@@ -77,8 +92,18 @@ def upgrade() -> None:
     op.create_table(
         "session_questions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("session_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("quiz_sessions.id", ondelete="CASCADE"), nullable=False),
-        sa.Column("revision_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("question_revisions.id", ondelete="RESTRICT"), nullable=False),
+        sa.Column(
+            "session_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("quiz_sessions.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
+        sa.Column(
+            "revision_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("question_revisions.id", ondelete="RESTRICT"),
+            nullable=False,
+        ),
         sa.Column("position", sa.Integer(), nullable=False),
         sa.Column("status", sa.String(16), nullable=False, server_default="issued"),
         sa.UniqueConstraint("session_id", "position", name="uq_session_question_position"),
@@ -88,7 +113,13 @@ def upgrade() -> None:
     op.create_table(
         "answer_attempts",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("session_question_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("session_questions.id", ondelete="RESTRICT"), nullable=False, unique=True),
+        sa.Column(
+            "session_question_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("session_questions.id", ondelete="RESTRICT"),
+            nullable=False,
+            unique=True,
+        ),
         sa.Column("idempotency_key", sa.String(100), nullable=False, unique=True),
         sa.Column("selected_option_key", sa.String(12), nullable=False),
         sa.Column("is_correct", sa.Boolean(), nullable=False),
