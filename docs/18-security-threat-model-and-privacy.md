@@ -24,3 +24,6 @@ Guest play; optional profile; minimization; personalization opt-out; export/dele
 
 ## Security release checks
 SAST/dependency/secret scan; route auth tests; IDOR tests; replay/concurrency tests; answer-key leak scan across API/log/cache/frontend; upload fuzzing; rate-limit tests; backup restore; audit completeness; export/delete test.
+
+## AI development-plane threats
+Treat prompts, retrieved files, repository issues and tool outputs as untrusted input. Enforce least-privilege tool scopes, egress allowlists, secret redaction, audit logs and human approval for privileged actions. Do not expose production learner data or secrets to agents. Block agent self-approval and direct deployment. Production services must not contain model credentials, agent/MCP runtimes or AI network dependencies.
