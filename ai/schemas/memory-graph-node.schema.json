@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quizveda.example/schemas/memory-graph-node.schema.json",
+  "title": "QuizVeda Memory Graph Node",
+  "type": "object",
+  "required": ["node_id", "node_type", "canonical_ref", "status", "provenance", "created_at"],
+  "properties": {
+    "node_id": {"type": "string", "format": "uuid"},
+    "node_type": {"enum": ["Concept", "FactClaim", "Source", "Topic", "QuestionRevision", "Explanation", "LearningObjective", "Perspective", "Locale", "ContentPackVersion", "Policy", "ADR", "Agent", "Skill", "Evaluation", "LearnerPreference"]},
+    "canonical_ref": {"type": "string"},
+    "status": {"enum": ["draft", "verified", "approved", "superseded", "rejected"]},
+    "provenance": {"type": "array", "items": {"type": "object", "required": ["source_ref", "relation"], "properties": {"source_ref": {"type": "string"}, "relation": {"enum": ["supports", "derived_from", "reviewed_by"]}}, "additionalProperties": false}},
+    "locale": {"type": "string"},
+    "age_suitability": {"type": "array", "items": {"type": "string"}},
+    "valid_from": {"type": "string", "format": "date-time"},
+    "valid_until": {"type": ["string", "null"], "format": "date-time"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string"}
+  },
+  "additionalProperties": false
+}
