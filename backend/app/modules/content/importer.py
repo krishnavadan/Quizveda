@@ -1,7 +1,7 @@
 import argparse
 import asyncio
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
 
@@ -52,7 +52,7 @@ async def import_pack(
     manifest, questions = read_pack_questions(pack_dir)
     approved = bool(approval_actor and approval_reference)
     status = "published" if publish else "approved" if approved else "validated"
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     async with SessionLocal() as db:
         async with db.begin():
