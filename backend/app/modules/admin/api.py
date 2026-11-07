@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+import re
 from typing import Annotated
 from uuid import UUID
 
@@ -272,4 +273,109 @@ async def list_audit_events(
         ],
         "limit": limit,
         "offset": offset,
+    }
+
+
+def _normalise_editorial_text(value: str) -> str:
+    return re.sub(r"\\W+", " ", value.casefold(), flags=re.UNICODE).strip()
+
+
+@router.get("/content-packs/{pack_id}/quality-report")
+async def get_content_quality_report(
+    pack_id: UUID,
+    db: DbSession,
+    principal: CanReadContent,
+) -> dict:
+    """Return deterministic editorial advisories; this report never approves content."""
+    pack = await db.get(ContentPackVersion, pack_id)
+    if pack is None:
+        raise HTTPException(status_code=404, detail="Content pack version not found.")
+
+    rows = (
+        await db.execute(
+            select(Question, QuestionRevision)
+            .join(QuestionRevision, QuestionRevision.question_id == Question.id)
+            .where(Question.pack_version_id == pack_id)
+            .order_by(Question.question_key, QuestionRevision.revision_no.desc())
+        )
+    ).all()
+
+    latest: dict[UUID, tuple[Question, QuestionRevision]] = {}
+    for question, revision in rows:
+        latest.setdefault(question.id, (question, revision))
+
+    revision_ids = [revision.id for _, revision in latest.values()]
+    option_rows = (
+        await db.scalars(
+            select(QuestionOption)
+            .where(QuestionOption.revision_id.in_(revision_ids))
+            .order_by(QuestionOption.revision_id, QuestionOption.display_order)
+        )
+    ).all() if revision_ids else []
+    options_by_revision: dict[UUID, list[QuestionOption]] = {}
+    for option in option_rows:
+        options_by_revision.setdefault(option.revision_id, []).append(option)
+
+    findings: list[dict] = []
+    stem_groups: dict[str, list[str]] = {}
+    for question, revision in latest.values():
+        key = question.question_key
+        normalised_stem = _normalise_editorial_text(revision.stem)
+        if normalised_stem:
+            stem_groups.setdefault(normalised_stem, []).append(key)
+        if len(revision.stem.strip()) < 20:
+            findings.append({
+                "question_key": key,
+                "code": "short_stem",
+                "severity": "advisory",
+                "message": "Question stem is unusually short; verify that it provides enough context.",
+            })
+        if len(revision.explanation.strip()) < 30:
+            findings.append({
+                "question_key": key,
+                "code": "short_explanation",
+                "severity": "advisory",
+                "message": "Explanation is brief; consider adding reasoning that helps learners understand the answer.",
+            })
+        options = options_by_revision.get(revision.id, [])
+        normalised_options = [_normalise_editorial_text(option.text) for option in options]
+        if len(normalised_options) != len(set(normalised_options)):
+            findings.append({
+                "question_key": key,
+                "code": "duplicate_options",
+                "severity": "advisory",
+                "message": "Two or more answer options have identical normalised text.",
+            })
+        if len(options) < 3:
+            findings.append({
+                "question_key": key,
+                "code": "few_options",
+                "severity": "advisory",
+                "message": "Fewer than three answer options are present; confirm this is intentional.",
+            })
+
+    duplicate_groups = [
+        {"question_keys": keys, "count": len(keys)}
+        for keys in stem_groups.values()
+        if len(keys) > 1
+    ]
+    for group in duplicate_groups:
+        for key in group["question_keys"]:
+            findings.append({
+                "question_key": key,
+                "code": "duplicate_stem",
+                "severity": "advisory",
+                "message": "This question has the same normalised stem as another question in the pack.",
+            })
+
+    return {
+        "pack_id": str(pack.id),
+        "pack_key": pack.pack_key,
+        "version": pack.version,
+        "lifecycle_status": pack.lifecycle_status,
+        "question_count": len(latest),
+        "advisory_count": len(findings),
+        "duplicate_stem_groups": duplicate_groups,
+        "findings": findings,
+        "disclaimer": "Heuristic editorial signals only. They may produce false positives or miss defects and do not replace subject-matter review, schema validation, rights checks, or approval.",
     }
