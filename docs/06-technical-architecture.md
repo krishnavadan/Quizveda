@@ -20,3 +20,6 @@ Stateless API instances; DB connection pooling; CDN caching; bounded worker conc
 
 ## AI
 AI may assist drafting, translation or metadata suggestions behind human review. It is not required for question selection, gameplay, scoring or session progression.
+
+## AI development-only boundary (mandatory)
+AI agents, skills, memory indexes and MCP tools run only in a separate, access-controlled development/content-authoring environment. They are not deployed with the PWA, API, workers or production infrastructure. Production dependencies must not include LLM SDKs or agent/MCP runtimes; production secrets must not contain model API keys. Runtime personalization, selection, scoring, explanations and progression are deterministic. The app reads only approved immutable content-pack versions. Content AI may draft offline, but a human must approve the final artifact before publication.
