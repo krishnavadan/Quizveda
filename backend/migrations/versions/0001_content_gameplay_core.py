@@ -127,7 +127,7 @@ def upgrade() -> None:
         ),
         sa.Column("position", sa.Integer(), nullable=False),
         sa.Column("status", sa.String(16), nullable=False, server_default="issued"),
-        sa.Column("issued_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column("issued_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("deadline_at", sa.DateTime(timezone=True), nullable=True),
         sa.UniqueConstraint("session_id", "position", name="uq_session_question_position"),
         sa.UniqueConstraint("session_id", "revision_id", name="uq_session_question_revision"),
