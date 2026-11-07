@@ -37,7 +37,7 @@ From the repository root:
 
 ```bash
 cd backend
-python -m app.modules.content.cli ../content/examples
+python -m app.modules.content.cli ../content/examples/sample-pack
 ```
 
 The pack directory must contain `manifest.json` and the files referenced by its manifest. Validation checks JSON Schema, file hashes, byte/record counts, unique question keys and answer-option consistency. Validation does not constitute editorial approval or authorize publication.
