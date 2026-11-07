@@ -1,19 +1,13 @@
 import argparse
 import asyncio
 import json
-from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
 
 from sqlalchemy import select
 
 from app.core.database import SessionLocal
-from app.db.models import (
-    ContentPackVersion,
-    Question,
-    QuestionOption,
-    QuestionRevision,
-)
+from app.db.models import ContentPackVersion, Question, QuestionOption, QuestionRevision
 from app.modules.content.validator import validate_pack
 
 
@@ -28,19 +22,8 @@ def read_pack_questions(pack_dir: Path) -> tuple[dict, list[dict]]:
     return manifest, questions
 
 
-async def import_pack(
-    pack_dir: Path,
-    schema_dir: Path,
-    *,
-    approval_actor: str | None = None,
-    approval_reference: str | None = None,
-    publish: bool = False,
-) -> UUID:
-    if bool(approval_actor) != bool(approval_reference):
-        raise ValueError("Approval actor and approval reference must be provided together.")
-    if publish and not approval_actor:
-        raise ValueError("Publishing requires an approval actor and approval reference.")
-
+async def import_pack(pack_dir: Path, schema_dir: Path) -> UUID:
+    """Import validated content as a draft; approval and publication are separate admin actions."""
     validation = validate_pack(
         pack_dir,
         schema_dir / "manifest.schema.json",
@@ -50,10 +33,6 @@ async def import_pack(
         raise ValueError("Content pack validation failed: " + "; ".join(validation.errors))
 
     manifest, questions = read_pack_questions(pack_dir)
-    approved = bool(approval_actor and approval_reference)
-    status = "published" if publish else "approved" if approved else "validated"
-    now = datetime.now(UTC)
-
     async with SessionLocal() as db:
         async with db.begin():
             existing = await db.scalar(
@@ -72,11 +51,7 @@ async def import_pack(
                 locale=manifest["locale"],
                 title=manifest["title"],
                 manifest_sha256=validation.manifest_sha256,
-                lifecycle_status=status,
-                approved_by=approval_actor if approved else None,
-                approval_reference=approval_reference if approved else None,
-                approved_at=now if approved else None,
-                published_at=now if publish else None,
+                lifecycle_status="validated",
             )
             db.add(pack_version)
             await db.flush()
@@ -97,7 +72,7 @@ async def import_pack(
                     difficulty=question_data["difficulty"],
                     answer_key_option_key=question_data["answer_key"]["option_key"],
                     estimated_seconds=question_data.get("estimated_seconds", 30),
-                    approved=approved,
+                    approved=False,
                     metadata_json={
                         "taxonomy": question_data.get("taxonomy", []),
                         "cognitive_objectives": question_data.get("cognitive_objectives", []),
@@ -121,27 +96,18 @@ async def import_pack(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Import a validated QuizVeda content pack.")
+    parser = argparse.ArgumentParser(
+        description="Import a validated QuizVeda content pack as a draft."
+    )
     parser.add_argument("pack_dir", type=Path)
     parser.add_argument("--schema-dir", type=Path, default=Path("../content/schema"))
-    parser.add_argument("--approval-actor")
-    parser.add_argument("--approval-reference")
-    parser.add_argument("--publish", action="store_true")
     args = parser.parse_args()
 
     try:
-        pack_id = asyncio.run(
-            import_pack(
-                args.pack_dir,
-                args.schema_dir,
-                approval_actor=args.approval_actor,
-                approval_reference=args.approval_reference,
-                publish=args.publish,
-            )
-        )
+        pack_id = asyncio.run(import_pack(args.pack_dir, args.schema_dir))
     except (ValueError, OSError) as exc:
         parser.error(str(exc))
-    print(f"Imported content pack version {pack_id}")
+    print(f"Imported validated content pack draft {pack_id}")
     return 0
 
 
