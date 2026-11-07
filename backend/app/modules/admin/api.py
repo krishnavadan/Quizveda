@@ -329,7 +329,7 @@ async def get_content_quality_report(
                 "code": "short_stem",
                 "severity": "advisory",
                 "message": (
-                    "Question stem is unusually short; verify that it provides enough context."
+                    "Question stem is unusually short; verify that it provides " "enough context."
                 ),
             })
         if len(revision.explanation.strip()) < 30:
@@ -338,7 +338,7 @@ async def get_content_quality_report(
                 "code": "short_explanation",
                 "severity": "advisory",
                 "message": (
-                    "Explanation is brief; consider adding reasoning that helps learners understand the answer."
+                    "Explanation is brief; consider adding reasoning that helps " "learners understand the answer."
                 ),
             })
         options = options_by_revision.get(revision.id, [])
@@ -356,7 +356,7 @@ async def get_content_quality_report(
                 "code": "few_options",
                 "severity": "advisory",
                 "message": (
-                    "Fewer than three answer options are present; confirm this is intentional."
+                    "Fewer than three answer options are present; confirm " "this is intentional."
                 ),
             })
 
@@ -372,7 +372,7 @@ async def get_content_quality_report(
                 "code": "duplicate_stem",
                 "severity": "advisory",
                 "message": (
-                    "This question has the same normalised stem as another question in the pack."
+                    "This question has the same normalised stem as another " "question in the pack."
                 ),
             })
 
@@ -387,6 +387,7 @@ async def get_content_quality_report(
         "findings": findings,
         "disclaimer": (
             "Heuristic editorial signals only. They may produce false positives or miss defects "
-            "and do not replace subject-matter review, schema validation, rights checks, or approval."
+            "and do not replace subject-matter review, schema validation, "
+            "rights checks, or approval."
         ),
     }
