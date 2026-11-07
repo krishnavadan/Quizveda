@@ -32,3 +32,7 @@ Profile may set defaults for typography, line spacing, content density, reading 
 
 ## Accessibility and research
 Target WCAG 2.2 AA: keyboard, screen readers, visible focus, zoom/reflow, reduced motion, contrast, non-colour status, captions/transcripts and error recovery. Test representative users across ages with appropriate consent. Measure comprehension, task success, mis-taps, reading burden, safety and recovery. Age is not a proxy for ability.
+
+
+## Deterministic implementation requirement
+Age-band presentation and personalization are driven only by self-declared, consent-appropriate profile settings and deterministic UI rules. No AI inference, age estimation, learner-facing AI assistant or runtime model-generated content is permitted. All content variations must be pre-reviewed and published in versioned packs.
