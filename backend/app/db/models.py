@@ -50,7 +50,10 @@ class QuestionRevision(Base):
     __tablename__ = "question_revisions"
     __table_args__ = (
         UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),
-        CheckConstraint("estimated_seconds BETWEEN 5 AND 600", name="ck_question_estimated_seconds"),
+        CheckConstraint(
+            "estimated_seconds BETWEEN 5 AND 600",
+            name="ck_question_estimated_seconds",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
@@ -138,4 +141,6 @@ class AnswerAttempt(Base):
     selected_option_key: Mapped[str] = mapped_column(String(12), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
     awarded_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    submitted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
