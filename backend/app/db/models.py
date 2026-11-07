@@ -2,8 +2,15 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String,
-    UniqueConstraint, Uuid, func,
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    Uuid,
+    func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -32,17 +39,24 @@ class Question(Base):
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     question_key: Mapped[str] = mapped_column(String(160), unique=True, nullable=False)
-    pack_version_id: Mapped[UUID] = mapped_column(ForeignKey("content_pack_versions.id", ondelete="RESTRICT"))
+    pack_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("content_pack_versions.id", ondelete="RESTRICT"), nullable=False
+    )
     pack_version: Mapped[ContentPackVersion] = relationship(back_populates="questions")
     revisions: Mapped[list["QuestionRevision"]] = relationship(back_populates="question")
 
 
 class QuestionRevision(Base):
     __tablename__ = "question_revisions"
-    __table_args__ = (\n        UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),\n        CheckConstraint("estimated_seconds BETWEEN 5 AND 600", name="ck_question_estimated_seconds"),\n    )
+    __table_args__ = (
+        UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),
+        CheckConstraint("estimated_seconds BETWEEN 5 AND 600", name="ck_question_estimated_seconds"),
+    )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    question_id: Mapped[UUID] = mapped_column(ForeignKey("questions.id", ondelete="RESTRICT"))
+    question_id: Mapped[UUID] = mapped_column(
+        ForeignKey("questions.id", ondelete="RESTRICT"), nullable=False
+    )
     revision_no: Mapped[int] = mapped_column(Integer, nullable=False)
     locale: Mapped[str] = mapped_column(String(16), nullable=False)
     stem: Mapped[str] = mapped_column(String, nullable=False)
@@ -52,7 +66,9 @@ class QuestionRevision(Base):
     estimated_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
     approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     question: Mapped[Question] = relationship(back_populates="revisions")
-    options: Mapped[list["QuestionOption"]] = relationship(back_populates="revision", cascade="all, delete-orphan")
+    options: Mapped[list["QuestionOption"]] = relationship(
+        back_populates="revision", cascade="all, delete-orphan"
+    )
 
 
 class QuestionOption(Base):
@@ -63,7 +79,9 @@ class QuestionOption(Base):
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    revision_id: Mapped[UUID] = mapped_column(ForeignKey("question_revisions.id", ondelete="CASCADE"))
+    revision_id: Mapped[UUID] = mapped_column(
+        ForeignKey("question_revisions.id", ondelete="CASCADE"), nullable=False
+    )
     option_key: Mapped[str] = mapped_column(String(12), nullable=False)
     text: Mapped[str] = mapped_column(String, nullable=False)
     display_order: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -93,21 +111,29 @@ class SessionQuestion(Base):
     __tablename__ = "session_questions"
     __table_args__ = (
         UniqueConstraint("session_id", "position", name="uq_session_question_position"),
-        UniqueConstraint("session_id", "revision_id", name="uq_session_question_revision"),\n        CheckConstraint("position > 0", name="ck_session_question_position"),
+        UniqueConstraint("session_id", "revision_id", name="uq_session_question_revision"),
+        CheckConstraint("position > 0", name="ck_session_question_position"),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    session_id: Mapped[UUID] = mapped_column(ForeignKey("quiz_sessions.id", ondelete="CASCADE"))
-    revision_id: Mapped[UUID] = mapped_column(ForeignKey("question_revisions.id", ondelete="RESTRICT"))
+    session_id: Mapped[UUID] = mapped_column(
+        ForeignKey("quiz_sessions.id", ondelete="CASCADE"), nullable=False
+    )
+    revision_id: Mapped[UUID] = mapped_column(
+        ForeignKey("question_revisions.id", ondelete="RESTRICT"), nullable=False
+    )
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="issued")
 
 
 class AnswerAttempt(Base):
     __tablename__ = "answer_attempts"
+    __table_args__ = (CheckConstraint("awarded_score >= 0", name="ck_answer_awarded_score"),)
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    session_question_id: Mapped[UUID] = mapped_column(ForeignKey("session_questions.id", ondelete="RESTRICT"), unique=True)
+    session_question_id: Mapped[UUID] = mapped_column(
+        ForeignKey("session_questions.id", ondelete="RESTRICT"), unique=True, nullable=False
+    )
     idempotency_key: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     selected_option_key: Mapped[str] = mapped_column(String(12), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
