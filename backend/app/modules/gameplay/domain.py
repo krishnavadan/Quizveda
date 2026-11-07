@@ -54,3 +54,22 @@ def ensure_answerable(
         raise GameplayError("Question is not the current question.")
     if already_answered:
         raise GameplayError("Question has already been answered.")
+
+
+def evaluate_option_answer(
+    *,
+    selected_option_key: str,
+    correct_option_key: str,
+    correct_score: int,
+    incorrect_score: int = 0,
+    explanation: str,
+) -> AnswerOutcome:
+    """Evaluate an answer using server-held option keys only."""
+    if correct_score < 0 or incorrect_score < 0:
+        raise GameplayError("Score values must be non-negative.")
+    is_correct = selected_option_key == correct_option_key
+    return AnswerOutcome(
+        is_correct=is_correct,
+        score_delta=correct_score if is_correct else incorrect_score,
+        explanation=explanation,
+    )
