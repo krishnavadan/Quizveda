@@ -8,6 +8,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import PyJWKClient
 from jwt.exceptions import InvalidTokenError, PyJWKClientError
+from starlette.concurrency import run_in_threadpool
 
 from app.core.config import Settings, get_settings
 
@@ -37,7 +38,9 @@ async def get_admin_principal(
 
     try:
         client = _jwks_client(settings.oidc_jwks_url)
-        signing_key = client.get_signing_key_from_jwt(credentials.credentials)
+        signing_key = await run_in_threadpool(
+            client.get_signing_key_from_jwt, credentials.credentials
+        )
         claims = jwt.decode(
             credentials.credentials,
             signing_key.key,
