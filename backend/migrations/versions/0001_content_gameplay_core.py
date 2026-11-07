@@ -24,7 +24,12 @@ def upgrade() -> None:
         sa.Column("title", postgresql.JSONB(), nullable=False),
         sa.Column("manifest_sha256", sa.String(64), nullable=False),
         sa.Column("lifecycle_status", sa.String(20), nullable=False, server_default="validated"),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
         sa.UniqueConstraint("pack_key", "version", name="uq_pack_version"),
     )
     op.create_index("ix_content_pack_versions_pack_key", "content_pack_versions", ["pack_key"])
@@ -57,7 +62,10 @@ def upgrade() -> None:
         sa.Column("estimated_seconds", sa.Integer(), nullable=False, server_default="30"),
         sa.Column("approved", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),
-        sa.CheckConstraint("estimated_seconds BETWEEN 5 AND 600", name="ck_question_estimated_seconds"),
+        sa.CheckConstraint(
+            "estimated_seconds BETWEEN 5 AND 600",
+            name="ck_question_estimated_seconds",
+        ),
     )
     op.create_table(
         "question_options",
@@ -124,7 +132,12 @@ def upgrade() -> None:
         sa.Column("selected_option_key", sa.String(12), nullable=False),
         sa.Column("is_correct", sa.Boolean(), nullable=False),
         sa.Column("awarded_score", sa.Integer(), nullable=False, server_default="0"),
-        sa.Column("submitted_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "submitted_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.func.now(),
+            nullable=False,
+        ),
         sa.CheckConstraint("awarded_score >= 0", name="ck_answer_awarded_score"),
     )
 
