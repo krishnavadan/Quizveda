@@ -5,7 +5,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import func, select
 
 from app.core.database import SessionLocal
-from app.db.models import ContentPackVersion, QuizSession
+from app.db.models import ContentPackVersion, Question, QuestionRevision, QuizSession
 from app.main import app
 from app.modules.content.importer import import_pack
 
@@ -16,45 +16,50 @@ def _repo_root() -> Path:
     return Path(__file__).resolve().parents[4]
 
 
-async def test_import_is_published_and_duplicate_import_is_atomic() -> None:
+async def _publish_fixture_pack(pack_id) -> None:
+    async with SessionLocal() as db:
+        pack = await db.get(ContentPackVersion, pack_id)
+        assert pack is not None
+        pack.lifecycle_status = "published"
+        revisions = (
+            await db.scalars(
+                select(QuestionRevision)
+                .join(Question, Question.id == QuestionRevision.question_id)
+                .where(Question.pack_version_id == pack_id)
+            )
+        ).all()
+        for revision in revisions:
+            revision.approved = True
+        await db.commit()
+
+
+async def test_import_creates_validated_draft_and_duplicate_import_is_atomic() -> None:
     root = _repo_root()
     pack_dir = root / "content" / "examples" / "sample-pack"
     schema_dir = root / "content" / "schema"
+    pack_id = await import_pack(pack_dir, schema_dir)
 
-    pack_id = await import_pack(
-        pack_dir,
-        schema_dir,
-        approval_actor="ci-reviewer",
-        approval_reference="QA-APPROVAL-001",
-        publish=True,
-    )
     with pytest.raises(ValueError, match="already been imported"):
-        await import_pack(
-            pack_dir,
-            schema_dir,
-            approval_actor="ci-reviewer",
-            approval_reference="QA-APPROVAL-001",
-            publish=True,
-        )
+        await import_pack(pack_dir, schema_dir)
 
     async with SessionLocal() as db:
         pack = await db.get(ContentPackVersion, pack_id)
         count = await db.scalar(select(func.count()).select_from(ContentPackVersion))
     assert pack is not None
-    assert pack.lifecycle_status == "published"
-    assert pack.approved_by == "ci-reviewer"
+    assert pack.lifecycle_status == "validated"
+    assert pack.approved_by is None
+    assert pack.published_at is None
     assert count == 1
 
 
 async def test_guest_gameplay_answer_idempotency_and_token_boundary() -> None:
     root = _repo_root()
-    await import_pack(
+    pack_id = await import_pack(
         root / "content" / "examples" / "sample-pack",
         root / "content" / "schema",
-        approval_actor="ci-reviewer",
-        approval_reference="QA-APPROVAL-002",
-        publish=True,
     )
+    # Test fixture simulates content that passed the separately tested admin workflow.
+    await _publish_fixture_pack(pack_id)
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
