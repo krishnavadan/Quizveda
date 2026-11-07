@@ -30,6 +30,10 @@ class ContentPackVersion(Base):
     title: Mapped[dict] = mapped_column(JSONB, nullable=False)
     manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     lifecycle_status: Mapped[str] = mapped_column(String(20), nullable=False, default="validated")
+    approved_by: Mapped[str | None] = mapped_column(String(120))
+    approval_reference: Mapped[str | None] = mapped_column(String(160))
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     questions: Mapped[list["Question"]] = relationship(back_populates="pack_version")
 
@@ -68,6 +72,7 @@ class QuestionRevision(Base):
     answer_key_option_key: Mapped[str] = mapped_column(String(12), nullable=False)
     estimated_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
     approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    metadata_json: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     question: Mapped[Question] = relationship(back_populates="revisions")
     options: Mapped[list["QuestionOption"]] = relationship(
         back_populates="revision", cascade="all, delete-orphan"
@@ -96,15 +101,20 @@ class QuizSession(Base):
     __table_args__ = (
         CheckConstraint("score >= 0", name="ck_session_score_nonnegative"),
         CheckConstraint("current_position >= 0", name="ck_session_position_nonnegative"),
+        CheckConstraint("question_count > 0", name="ck_session_question_count_positive"),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     guest_session_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    pack_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("content_pack_versions.id", ondelete="RESTRICT"), nullable=False
+    )
     mode: Mapped[str] = mapped_column(String(24), nullable=False)
     locale: Mapped[str] = mapped_column(String(16), nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
     score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     current_position: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    question_count: Mapped[int] = mapped_column(Integer, nullable=False)
     selection_seed: Mapped[str] = mapped_column(String(64), nullable=False)
     policy_version: Mapped[str] = mapped_column(String(30), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -127,6 +137,8 @@ class SessionQuestion(Base):
     )
     position: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="issued")
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    deadline_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class AnswerAttempt(Base):
@@ -141,6 +153,4 @@ class AnswerAttempt(Base):
     selected_option_key: Mapped[str] = mapped_column(String(12), nullable=False)
     is_correct: Mapped[bool] = mapped_column(Boolean, nullable=False)
     awarded_score: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    submitted_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
