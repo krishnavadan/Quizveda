@@ -204,7 +204,7 @@ class WorkspaceQuestion(Base):
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     workspace_id: Mapped[UUID] = mapped_column(ForeignKey("authoring_workspaces.id", ondelete="RESTRICT"), nullable=False, index=True)
     question_key: Mapped[str] = mapped_column(String(160), nullable=False)
-    current_revision_id: Mapped[UUID | None] = mapped_column(Uuid, nullable=True)
+    current_revision_id: Mapped[UUID | None] = mapped_column(ForeignKey("workspace_question_revisions.id", ondelete="RESTRICT"), nullable=True)
     is_tombstoned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
