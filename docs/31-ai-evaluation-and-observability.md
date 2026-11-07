@@ -17,3 +17,7 @@ Track content approval/rejection and provenance; agent first-pass acceptance and
 
 ## Incident process
 Disable affected agent/tool or content pack, preserve audit evidence, assess impact, correct/rollback, perform root-cause analysis, add regression tests and communicate under approved policy. Agents cannot suppress or rewrite audit records.
+
+
+## Development-only scope
+This evaluation/observability system monitors internal AI development and content-authoring workflows only. It must not instrument learner gameplay with model traces because no model runs there. Product analytics remain separate, privacy-governed application telemetry. No production learner record is copied into AI evaluation datasets; use synthetic, public-domain or properly sanitized and authorized examples.
