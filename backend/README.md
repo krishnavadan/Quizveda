@@ -79,3 +79,10 @@ The production gameplay API selects only pack versions marked `published` and qu
 - `POST /api/v1/gameplay/sessions/{session_id}/answers` — submits `question_id` and `selected_option_key`; requires an `Idempotency-Key` header.
 
 The answer key is never returned. The server controls the question sequence, deadline, answer evaluation, score and progression. A stale question ID is rejected; retries with the same idempotency key replay the original outcome.
+
+
+## Admin content API
+
+The initial Admin CMS API is protected by provider-neutral OIDC access-token verification. Configure `OIDC_ISSUER`, `OIDC_AUDIENCE`, and `OIDC_JWKS_URL`; optionally set `OIDC_ROLES_CLAIM` (default `roles`). The identity provider must issue RS256-signed API access tokens with the configured issuer/audience and role claims. Admin routes fail closed until configured.
+
+Content import creates validated drafts only. Reviewers approve packs and publishers publish them through separate role-gated API actions. See [Admin CMS security and content governance](../docs/32-admin-content-cms-and-rbac.md) for roles, endpoints, lifecycle, audit and production requirements.
