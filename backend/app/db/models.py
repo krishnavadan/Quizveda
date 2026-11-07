@@ -2,9 +2,10 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
-    Boolean, CheckConstraint, DateTime, ForeignKey, Integer, JSON, String,
+    Boolean, CheckConstraint, DateTime, ForeignKey, Integer, String,
     UniqueConstraint, Uuid, func,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -19,7 +20,7 @@ class ContentPackVersion(Base):
     version: Mapped[str] = mapped_column(String(40), nullable=False)
     schema_version: Mapped[str] = mapped_column(String(20), nullable=False)
     locale: Mapped[str] = mapped_column(String(16), nullable=False)
-    title: Mapped[dict] = mapped_column(JSON, nullable=False)
+    title: Mapped[dict] = mapped_column(JSONB, nullable=False)
     manifest_sha256: Mapped[str] = mapped_column(String(64), nullable=False)
     lifecycle_status: Mapped[str] = mapped_column(String(20), nullable=False, default="validated")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -38,7 +39,7 @@ class Question(Base):
 
 class QuestionRevision(Base):
     __tablename__ = "question_revisions"
-    __table_args__ = (UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),)
+    __table_args__ = (\n        UniqueConstraint("question_id", "revision_no", name="uq_question_revision"),\n        CheckConstraint("estimated_seconds BETWEEN 5 AND 600", name="ck_question_estimated_seconds"),\n    )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
     question_id: Mapped[UUID] = mapped_column(ForeignKey("questions.id", ondelete="RESTRICT"))
@@ -92,7 +93,7 @@ class SessionQuestion(Base):
     __tablename__ = "session_questions"
     __table_args__ = (
         UniqueConstraint("session_id", "position", name="uq_session_question_position"),
-        UniqueConstraint("session_id", "revision_id", name="uq_session_question_revision"),
+        UniqueConstraint("session_id", "revision_id", name="uq_session_question_revision"),\n        CheckConstraint("position > 0", name="ck_session_question_position"),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
