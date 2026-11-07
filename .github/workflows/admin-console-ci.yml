@@ -1,0 +1,38 @@
+name: Admin console CI
+
+on:
+  pull_request:
+    paths:
+      - "admin-console/**"
+      - ".github/workflows/admin-console-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "admin-console/**"
+      - ".github/workflows/admin-console-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-console
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin-console/package.json
+      - run: npm install
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_OIDC_AUTHORITY: https://identity.example.com
+          NEXT_PUBLIC_OIDC_CLIENT_ID: quizveda-admin-console
+          NEXT_PUBLIC_OIDC_REDIRECT_URI: https://admin.example.com/auth/callback
+          NEXT_PUBLIC_API_BASE_URL: https://api.example.com
