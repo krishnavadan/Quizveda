@@ -3,7 +3,7 @@ import json
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -64,7 +64,12 @@ class RevisionAppend(QuestionRevisionInput):
 
 
 def _canonical_hash(value: dict) -> str:
-    encoded = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    encoded = json.dumps(
+        value,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
@@ -104,7 +109,13 @@ async def create_workspace(
     async with db.begin():
         db.add(workspace)
         await db.flush()
-        _write_audit(db, principal.subject, "authoring_workspace.created", str(workspace.id), {})
+        _write_audit(
+            db,
+            principal.subject,
+            "authoring_workspace.created",
+            str(workspace.id),
+            {},
+        )
     return {
         "id": str(workspace.id),
         "workspace_key": workspace.workspace_key,
@@ -160,7 +171,10 @@ async def create_question(
     option_keys = [item["key"] for item in revision_data["options"]]
     option_orders = [item["display_order"] for item in revision_data["options"]]
     if len(option_keys) != len(set(option_keys)) or len(option_orders) != len(set(option_orders)):
-        raise HTTPException(status_code=422, detail="Option keys and display orders must be unique.")
+        raise HTTPException(
+            status_code=422,
+            detail="Option keys and display orders must be unique.",
+        )
     if payload.revision.answer_key_option_key not in option_keys:
         raise HTTPException(status_code=422, detail="Answer key must reference an existing option.")
     async with db.begin():
@@ -259,7 +273,10 @@ async def append_revision(
             or current is None
             or current.revision_no != payload.expected_revision_no
         ):
-            raise HTTPException(status_code=409, detail="revision_conflict: refresh before editing.")
+            raise HTTPException(
+                status_code=409,
+                detail="revision_conflict: refresh before editing.",
+            )
         revision = WorkspaceQuestionRevision(
             workspace_question_id=question.id,
             revision_no=current.revision_no + 1,
