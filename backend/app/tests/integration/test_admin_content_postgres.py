@@ -197,8 +197,12 @@ async def test_authoring_workspace_revision_history_and_stale_write_conflict() -
                 "expected_revision_no": 1,
                 "expected_workspace_lock_version": 2,
             }
+            revision_url = (
+                f"/api/v1/admin/authoring-workspaces/{workspace_id}/questions/"
+                f"{first['question_id']}/revisions"
+            )
             revised = await client.post(
-                f"/api/v1/admin/authoring-workspaces/{workspace_id}/questions/{first['question_id']}/revisions",
+                revision_url,
                 json=revised_payload,
             )
             assert revised.status_code == 200
@@ -208,7 +212,7 @@ async def test_authoring_workspace_revision_history_and_stale_write_conflict() -
             assert second["content_sha256"] != first["content_sha256"]
 
             stale = await client.post(
-                f"/api/v1/admin/authoring-workspaces/{workspace_id}/questions/{first['question_id']}/revisions",
+                revision_url,
                 json=revised_payload,
             )
             assert stale.status_code == 409
