@@ -194,30 +194,63 @@ class AuthoringWorkspace(Base):
     lock_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     created_by: Mapped[str] = mapped_column(String(255), nullable=False)
     updated_by: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
 
 class WorkspaceQuestion(Base):
     __tablename__ = "workspace_questions"
-    __table_args__ = (UniqueConstraint("workspace_id", "question_key", name="uq_workspace_question_key"),)
+    __table_args__ = (
+        UniqueConstraint(
+            "workspace_id",
+            "question_key",
+            name="uq_workspace_question_key",
+        ),
+    )
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    workspace_id: Mapped[UUID] = mapped_column(ForeignKey("authoring_workspaces.id", ondelete="RESTRICT"), nullable=False, index=True)
+    workspace_id: Mapped[UUID] = mapped_column(
+        ForeignKey("authoring_workspaces.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
     question_key: Mapped[str] = mapped_column(String(160), nullable=False)
-    current_revision_id: Mapped[UUID | None] = mapped_column(ForeignKey("workspace_question_revisions.id", ondelete="RESTRICT"), nullable=True)
+    current_revision_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("workspace_question_revisions.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
     is_tombstoned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
 
 
 class WorkspaceQuestionRevision(Base):
     __tablename__ = "workspace_question_revisions"
     __table_args__ = (
-        UniqueConstraint("workspace_question_id", "revision_no", name="uq_workspace_question_revision"),
+        UniqueConstraint(
+            "workspace_question_id",
+            "revision_no",
+            name="uq_workspace_question_revision",
+        ),
         CheckConstraint("revision_no > 0", name="ck_workspace_revision_positive"),
-        CheckConstraint("estimated_seconds BETWEEN 5 AND 600", name="ck_workspace_estimated_seconds"),
+        CheckConstraint(
+            "estimated_seconds BETWEEN 5 AND 600",
+            name="ck_workspace_estimated_seconds",
+        ),
     )
     id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    workspace_question_id: Mapped[UUID] = mapped_column(ForeignKey("workspace_questions.id", ondelete="RESTRICT"), nullable=False, index=True)
+    workspace_question_id: Mapped[UUID] = mapped_column(
+        ForeignKey("workspace_questions.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
     revision_no: Mapped[int] = mapped_column(Integer, nullable=False)
     locale: Mapped[str] = mapped_column(String(16), nullable=False)
     stem: Mapped[str] = mapped_column(String, nullable=False)
