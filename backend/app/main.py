@@ -1,13 +1,18 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
+from app.core.database import engine
+from app.modules.gameplay.api import router as gameplay_router
 
 settings = get_settings()
 app = FastAPI(
     title=settings.app_name,
     version="0.1.0",
-    description="QuizVeda API — implementation scaffold",
+    description="QuizVeda API — deterministic quiz and learning services",
 )
+app.include_router(gameplay_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["platform"])
@@ -17,8 +22,12 @@ async def liveness() -> dict[str, str]:
 
 @app.get("/health/ready", tags=["platform"])
 async def readiness() -> dict[str, str]:
-    # Database connectivity check is added with the persistence milestone.
-    return {"status": "ready", "database": "not_checked"}
+    try:
+        async with engine.connect() as connection:
+            await connection.execute(text("SELECT 1"))
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=503, detail="Database unavailable") from exc
+    return {"status": "ready", "database": "connected"}
 
 
 @app.get("/", include_in_schema=False)

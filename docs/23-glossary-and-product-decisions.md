@@ -4,7 +4,7 @@
 Pack: independently versioned content unit. Pack version: immutable snapshot. Question revision: immutable reviewed item. Perspective: lens framing a question. Cognitive objective: intended learning action. Session: server-authoritative game. Lifeline: limited assistance mechanic. Mastery: approximate progress indicator, not validated psychometric score.
 
 ## Baseline decisions
-Broad audience; optional profile; guest play; Play to Win and Play to Learn; Classic Ladder/Practice/Quick Quiz/Topic Challenge; multi-perspective questions; versioned JSON content; hybrid optional AI; React/Next.js PWA + FastAPI modular monolith + PostgreSQL; Redis only when justified; object storage/CDN for immutable public content; protected answer payloads via API.
+Broad audience; optional profile; guest play; Play to Win and Play to Learn; Classic Ladder/Practice/Quick Quiz/Topic Challenge; multi-perspective questions; versioned JSON content; AI development-only; React/Next.js PWA + FastAPI modular monolith + PostgreSQL; Redis only when justified; object storage/CDN for immutable public content; protected answer payloads via API.
 
 ## Open decisions before implementation freeze
 1. Trademark/domain clearance.

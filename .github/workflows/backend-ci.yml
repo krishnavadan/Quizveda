@@ -1,0 +1,64 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "content/schema/**"
+      - "content/examples/**"
+      - ".github/workflows/backend-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "content/schema/**"
+      - "content/examples/**"
+      - ".github/workflows/backend-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: quizveda
+          POSTGRES_PASSWORD: quizveda
+          POSTGRES_DB: quizveda
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U quizveda -d quizveda"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      ENVIRONMENT: test
+      DATABASE_URL: postgresql+asyncpg://quizveda:quizveda@localhost:5432/quizveda
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check app migrations
+      - name: Alembic offline SQL smoke test
+        run: alembic upgrade head --sql
+      - name: Apply migrations to PostgreSQL
+        run: alembic upgrade head
+      - name: Unit and PostgreSQL integration tests
+        run: pytest -q
+      - name: Validate sample content pack
+        run: python -m app.modules.content.cli ../content/examples/sample-pack --schema-dir ../content/schema
