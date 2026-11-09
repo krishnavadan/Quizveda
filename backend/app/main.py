@@ -4,6 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
 from app.core.database import engine
+from app.modules.admin.api import router as admin_router
 from app.modules.gameplay.api import router as gameplay_router
 
 settings = get_settings()
@@ -13,6 +14,7 @@ app = FastAPI(
     description="QuizVeda API — deterministic quiz and learning services",
 )
 app.include_router(gameplay_router, prefix=settings.api_v1_prefix)
+app.include_router(admin_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health/live", tags=["platform"])
