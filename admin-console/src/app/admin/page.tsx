@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ContentPack, adminRequest } from "@/lib/admin-api";
+import { ContentPack, adminRequest, contentPackTitle } from "@/lib/admin-api";
 import { getUserManager } from "@/lib/oidc";
 
 type PackResponse = { items?: ContentPack[]; content_packs?: ContentPack[] } | ContentPack[];
@@ -46,7 +46,7 @@ export default function AdminDashboardPage() {
         <nav aria-label="Admin navigation">
           <a className="nav-item active" href="/admin"><span>▦</span> Overview</a>
           <a className="nav-item" href="#content-packs"><span>▤</span> Content packs</a>
-          <a className="nav-item" href="#governance"><span>◇</span> Governance</a>
+          <a className="nav-item" href="#governance"><span>◇</span> Governance</a>\n          <a className="nav-item" href="/admin/audit"><span>≡</span> Audit history</a>
         </nav>
         <div className="sidebar-note"><strong>Content integrity</strong><p>Every release is validated, reviewed, approved and published through controlled roles.</p></div>
       </aside>
@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
           </section>
           <section className="data-section" id="content-packs">
             <div className="section-heading"><div><span className="eyebrow">LIBRARY</span><h2>Content packs</h2><p className="muted">Published and draft pack inventory available to your account.</p></div><span className="count-pill">{packs.length} packs</span></div>
-            {loading ? <div className="empty-state">Loading content inventory…</div> : error ? <div className="error-panel" role="alert"><strong>Could not load inventory</strong><p>{error}</p><button className="secondary-button" onClick={() => void load()}>Try again</button></div> : packs.length === 0 ? <div className="empty-state">No content packs are currently visible. Import and validate a content pack using the approved offline workflow.</div> : <div className="table-wrap"><table><thead><tr><th>Pack</th><th>Version</th><th>Locale</th><th>Status</th></tr></thead><tbody>{packs.map((pack, index) => <tr key={pack.id ?? index}><td><strong>{pack.title ?? pack.pack_key ?? pack.id}</strong><small>{pack.pack_key ?? pack.id}</small></td><td>{pack.version ?? "—"}</td><td>{pack.locale ?? "—"}</td><td><span className={`status status-${(pack.lifecycle_status ?? "unknown").toLowerCase()}`}>{pack.lifecycle_status ?? "Unknown"}</span></td></tr>)}</tbody></table></div>}
+            {loading ? <div className="empty-state">Loading content inventory…</div> : error ? <div className="error-panel" role="alert"><strong>Could not load inventory</strong><p>{error}</p><button className="secondary-button" onClick={() => void load()}>Try again</button></div> : packs.length === 0 ? <div className="empty-state">No content packs are currently visible. Import and validate a content pack using the approved offline workflow.</div> : <div className="table-wrap"><table><thead><tr><th>Pack</th><th>Version</th><th>Locale</th><th>Status</th></tr></thead><tbody>{packs.map((pack, index) => <tr key={pack.id ?? index}><td><a className="pack-link" href={`/admin/content-packs/${encodeURIComponent(pack.id)}`}><strong>{contentPackTitle(pack)}</strong><small>{pack.pack_key ?? pack.id} · Review details →</small></a></td><td>{pack.version ?? "—"}</td><td>{pack.locale ?? "—"}</td><td><span className={`status status-${(pack.lifecycle_status ?? "unknown").toLowerCase()}`}>{pack.lifecycle_status ?? "Unknown"}</span></td></tr>)}</tbody></table></div>}
           </section>
           <section className="governance-panel" id="governance"><div><span className="eyebrow">RELEASE GOVERNANCE</span><h2>Trust is built into the workflow.</h2><p>Content moves through separate validation, approval and publication steps. Reviewer and publisher separation is enforced by the API, with audit events recorded for lifecycle transitions.</p></div><div className="workflow"><span>01 <b>Validated</b></span><i>→</i><span>02 <b>Approved</b></span><i>→</i><span>03 <b>Published</b></span></div></section>
           <footer className="console-footer">QuizVeda Admin · Internal content operations · No learner-facing AI services</footer>
