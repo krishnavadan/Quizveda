@@ -108,3 +108,32 @@ async def test_admin_content_detail_and_question_preview() -> None:
             assert len(item["options"]) == 3
     finally:
         app.dependency_overrides.pop(get_admin_principal, None)
+
+
+async def test_content_quality_report_is_advisory_and_role_gated() -> None:
+    root = _repo_root()
+    pack_id = await import_pack(
+        root / "content" / "examples" / "sample-pack",
+        root / "content" / "schema",
+    )
+    transport = ASGITransport(app=app)
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            _set_principal("unauthorised", "learner")
+            denied = await client.get(
+                f"/api/v1/admin/content-packs/{pack_id}/quality-report"
+            )
+            assert denied.status_code == 403
+
+            _set_principal("editor-quality", "content_editor")
+            response = await client.get(
+                f"/api/v1/admin/content-packs/{pack_id}/quality-report"
+            )
+            assert response.status_code == 200
+            report = response.json()
+            assert report["pack_id"] == str(pack_id)
+            assert report["question_count"] == 1
+            assert isinstance(report["findings"], list)
+            assert "do not replace" in report["disclaimer"]
+    finally:
+        app.dependency_overrides.pop(get_admin_principal, None)
